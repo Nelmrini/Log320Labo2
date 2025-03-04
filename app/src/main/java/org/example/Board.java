@@ -6,7 +6,7 @@ import java.util.ArrayList;
 // de cette classe, ni le nom de la classe.
 // Vous pouvez par contre ajouter d'autres méthodes (ça devrait
 // être le cas)
-class Board {
+public class Board {
     private Mark[][] board;
 
     // Ne pas changer la signature de cette méthode

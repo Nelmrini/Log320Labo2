@@ -6,7 +6,7 @@ import java.util.ArrayList;
 // de cette classe, ni le nom de la classe.
 // Vous pouvez par contre ajouter d'autres méthodes (ça devrait 
 // être le cas)
-class CPUPlayer {
+public class CPUPlayer {
 
     // Contient le nombre de noeuds visités (le nombre
     // d'appel à la fonction MinMax ou Alpha Beta)
