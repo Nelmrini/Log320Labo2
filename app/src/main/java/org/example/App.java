@@ -4,6 +4,7 @@
 package org.example;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.Scanner;
 
 public class App {
@@ -34,14 +35,28 @@ public class App {
             default -> "This code is going to isekai itself";
         });
 
-        Scanner scanner = new Scanner(System.in);
+        // Scanner scanner = new Scanner(System.in);
+        //
+        // while (scanner.hasNext()) {
+        //     var str = scanner.nextLine();
+        //     link.play(Board.strToMov(str));
+        //     System.out.println(link.getBoard());
+        // }
+        //
+        // scanner.close();
+        //
 
-        while (scanner.hasNext()) {
-            var str = scanner.nextLine();
-            link.play(Board.strToMov(str));
+        Random random = new Random();
+
+        while (true) {
+            var moves = link.getBoard().getPossibleMoves(
+                    link.getPlayer(),
+                    link.getLastPlay()
+                    );
+            var m = moves.get(random.nextInt(moves.size()));
+            link.play(m);
+
             System.out.println(link.getBoard());
         }
-
-        scanner.close();
     }
 }
