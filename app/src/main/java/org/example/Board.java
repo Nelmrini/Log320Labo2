@@ -1,10 +1,9 @@
 package org.example;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.Nullable;
+//import javax.annotation.Nullable;
 
 // IMPORTANT: Il ne faut pas changer la signature des méthodes
 // de cette classe, ni le nom de la classe.
@@ -30,6 +29,10 @@ public class Board {
 	// Ne pas changer la signature de cette méthode
 	public void play(Move m, Mark mark) {
 		board[m.getRow()][m.getCol()] = mark;
+	}
+    
+	public void undo(Move m){
+		board[m.getRow()][m.getCol()] = Mark.EMPTY;
 	}
 
 	@Override
@@ -80,14 +83,22 @@ public class Board {
 		// unless red just played, it's always red turn.
 		return (redcnt > blkcnt)? Mark.O : Mark.X;
 	}
-
+    public Mark flip(Mark mark){
+        if(mark==Mark.O){
+            mark=Mark.X;
+            return mark;
+        }else if(mark==Mark.X){
+            mark=Mark.O;
+           return mark;
+        }else{return mark;}
+    }
 	/**
 	 * List all possible move for a player
 	 * @param player who's moves it is
 	 * @param vsMove the move of the opponents
 	 * @return a list of all possible move
 	 */
-	public List<Move> getPossibleMoves(Mark Player, @Nullable Move vsMove) {
+	public List<Move> getPossibleMoves(Mark Player, Move vsMove) {
 		if (vsMove == null) {
 			List<Move> res = new ArrayList<>();
 			for (int i = 0; i < 9; i++) {
