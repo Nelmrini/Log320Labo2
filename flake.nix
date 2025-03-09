@@ -16,11 +16,12 @@
 				zsh
 			];
 			shellHook = ''
-				exec zsh
+                export SHELL=zsh
 				if [[ $TMUX ]]; then
 					tmux rename-window "nvim"
 					tmux rename-session "TicTacToe"
 				fi
+				exec zsh
 			'';
 		};
 	};

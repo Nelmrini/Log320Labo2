@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.net.Socket;
 
 /**
- * Link the the application running. Connection is done via a socket on the local network.
+ * Link the the application running.
+ * Connection is done via a socket on the local network.
  *
  * This object has a internal memory of the current state of the game
- * Any attempt to modify the board from it's reference with indroduce undetermined behaviour
+ * Any attempt to modify the board from it's reference with
+ * indroduce undefined behaviour
  * It is recommended to always query the board with getBoard when in need.
  *
  * @author Brian Normant
@@ -23,13 +25,18 @@ public final class Link {
 	/** port of the server. **/
 	private static final Integer PORT = 8888;
 
-
+	/** socket where the connection is done. **/
 	private Socket socket;
+	/** input stream. **/
 	private BufferedInputStream input;
+	/** output stream. **/
 	private BufferedOutputStream output;
 
+	/** the server board. **/
 	private final Board board;
+	/** the role the AI is playing. **/
 	private final Mark player;
+	/** the last move the server played. **/
 	private Move lastServerPlay = null;
 
 
@@ -63,7 +70,8 @@ public final class Link {
 			for (int i = 0; i < 9; i++) {
 				for (int j = 0; j < 9; j++) {
 					var m = new Move(j, i);
-					var mark = switch (Integer.parseInt(boardValues[i * 9 + j])) {
+					var c = Integer.parseInt(boardValues[i * 9 + j]);
+					var mark = switch (c) {
 						case 4 -> Mark.X;
 						case 2 -> Mark.O;
 						default -> Mark.EMPTY;
@@ -85,13 +93,13 @@ public final class Link {
 	}
 
 	/**
-	 * Transmit the play to the server
+	 * Transmit the play to the server.
 	 * This method is blocking as the server needs time answer
 	 * One can assume that once the method finish and return the board has been
 	 * updated with the opponents reaction
 	 * @param move where in the board the move is play
 	 */
-	public void play(Move move) {
+	public void play(final Move move) {
 		board.play(move, player);
 		var msg = move.toString();
 
@@ -105,11 +113,20 @@ public final class Link {
 		readServer();
 	}
 
-	public Board getBoard() { return board; }
-	public Mark getPlayer() { return player; }
-	public Move getLastPlay() {return lastServerPlay;}
+	public Board getBoard() {
+		return new Board(board);
+	}
 
-	/** read the server's response
+	public Mark getPlayer() {
+		return player;
+	}
+
+	public Move getLastPlay() {
+		return lastServerPlay;
+	}
+
+	/**
+	 * read the server's response.
 	 * this call is blocking
 	 * the board may be updated depending of the server's answer
 	 */
@@ -134,6 +151,9 @@ public final class Link {
 					// our last play was invalid, this should never happen
 					throw new RuntimeException("Invalid move");
 				}
+				default -> {
+					throw new RuntimeException("Unexpected answer");
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -146,6 +166,10 @@ public final class Link {
 	 * @return a Link to the server
 	 */
 	public static Link getInstance() {
-		return (instance == null) ? (instance = new Link()) : instance;
+		//return (instance == null) ? (instance = new Link()) : instance;
+		if (instance == null) {
+			instance = new Link();
+		}
+		return instance;
 	}
 }

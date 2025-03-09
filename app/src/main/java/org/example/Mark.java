@@ -1,8 +1,15 @@
 package org.example;
 
+/**
+ * A case on the board.
+ * @author Brian Normant
+ */
 public enum Mark {
+	/** red player play with crosses. **/
 	X,
+	/** black player play with circles. **/
 	O,
+	/** no one played here. **/
 	EMPTY;
 
 	public Mark other() {
