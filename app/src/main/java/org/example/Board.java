@@ -76,7 +76,72 @@ public final class Board {
 	//           0   pour un match nul
 	// Ne pas changer la signature de cette méthode
 	public int evaluate(final Mark mark) {
-		throw new UnsupportedOperationException();
+		Mark[][] resultboard = new Mark[3][3];
+
+		for(int i = 0; i<3; i++){
+			for(int j = 0; j<3; j++){
+				resultboard[i][j] = Mark.EMPTY;
+			}
+		}
+		for(int k = 0; k < 9; k+=3){
+			for(int w = 0; w < 9; w+=3){
+				for (int i = 0; i < 3; i++) {
+					if (board[k+i][w+0] == board[k+i][w+1] && board[k+i][w+1] == board[k+i][w+2] && board[k+i][w+0] != Mark.EMPTY) {
+						//return (board[i][0] == mark) ? 100 : -100;
+						resultboard[k/3][w/3]=board[k+i][w+0];
+					}
+				}
+			
+				for (int j = 0; j < 3; j++) {
+					if (board[k+0][w+j] == board[k+1][w+j] && board[k+1][w+j] == board[k+2][w+j] && board[k+0][w+j] != Mark.EMPTY) {
+						//return (board[0][j] == mark) ? 100 : -100;
+						resultboard[k/3][w/3]=board[k+0][w+j];
+					}
+				}
+			
+				if (board[k+0][w+0] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+2] && board[k+0][w+0] != Mark.EMPTY) {
+					//return (board[0][0] == mark) ? 100 : -100;
+					resultboard[k/3][w/3]=board[k+0][w+0];
+				}
+			
+				if (board[k+0][w+2] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+0] && board[k+0][w+2] != Mark.EMPTY) {
+					//return (board[0][2] == mark) ? 100 : -100;
+					resultboard[k/3][w/3]=board[k+0][w+2];
+				}
+			}
+			
+		}
+
+		for (int i = 0; i < 3; i++) {
+            if (resultboard[i][0] == resultboard[i][1] && resultboard[i][1] == resultboard[i][2] && resultboard[i][0] != Mark.EMPTY) {
+                return (resultboard[i][0] == mark) ? 100 : -100;
+            }
+        }
+    
+        for (int j = 0; j < 3; j++) {
+            if (resultboard[0][j] == resultboard[1][j] && resultboard[1][j] == resultboard[2][j] && resultboard[0][j] != Mark.EMPTY) {
+                return (resultboard[0][j] == mark) ? 100 : -100;
+            }
+        }
+    
+        if (resultboard[0][0] == resultboard[1][1] && resultboard[1][1] == resultboard[2][2] && resultboard[0][0] != Mark.EMPTY) {
+            return (resultboard[0][0] == mark) ? 100 : -100;
+        }
+    
+        if (resultboard[0][2] == resultboard[1][1] && resultboard[1][1] == resultboard[2][0] && resultboard[0][2] != Mark.EMPTY) {
+            return (resultboard[0][2] == mark) ? 100 : -100;
+        }
+    
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (resultboard[i][j] == Mark.EMPTY) {
+                    return -200; 
+                }
+            }
+        }
+
+        return 0;
+		//throw new UnsupportedOperationException();
 	}
 
 	public Mark nextPlayer() {

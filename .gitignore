@@ -6,3 +6,7 @@ build
 gradle
 .settings
 app/bin
+.vs/ProjectSettings.json
+.vs/slnx.sqlite
+.vs/VSWorkspaceState.json
+.vs/lab/v16/.suo

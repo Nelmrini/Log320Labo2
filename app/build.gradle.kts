@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
     // This dependency is used by the application.
-    implementation(libs.guava)
+    //implementation(libs.guava)
 }
 
 testing {
