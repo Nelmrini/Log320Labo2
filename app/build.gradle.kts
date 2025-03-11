@@ -10,6 +10,7 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
     checkstyle
+    jacoco
 }
 
 repositories {
@@ -44,6 +45,6 @@ application {
     mainClass = "org.example.App"
 }
 
-tasks.named<JavaExec>("run") {
-    standardInput = System.`in`
-}
+// tasks.named<JavaExec>("run") {
+//     standardInput = System.`in`
+// }
