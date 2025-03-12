@@ -132,6 +132,20 @@ public final class Board {
 			return (resultboard[0][2] == mark) ? 100 : -100;
 		}
 
+		for (int j = 0; j < 3; j++) {
+			if (resultboard[0][j] == resultboard[1][j] && resultboard[1][j] == resultboard[2][j] && resultboard[0][j] != Mark.EMPTY) {
+				return (resultboard[0][j] == mark) ? 100 : -100;
+			}
+		}
+
+		if (resultboard[0][0] == resultboard[1][1] && resultboard[1][1] == resultboard[2][2] && resultboard[0][0] != Mark.EMPTY) {
+			return (resultboard[0][0] == mark) ? 100 : -100;
+		}
+
+		if (resultboard[0][2] == resultboard[1][1] && resultboard[1][1] == resultboard[2][0] && resultboard[0][2] != Mark.EMPTY) {
+			return (resultboard[0][2] == mark) ? 100 : -100;
+		}
+
 		return 0;
 		//throw new UnsupportedOperationException();
 	}
