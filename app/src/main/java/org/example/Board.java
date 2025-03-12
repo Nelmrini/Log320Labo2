@@ -113,34 +113,26 @@ public final class Board {
 		}
 
 		for (int i = 0; i < 3; i++) {
-            if (resultboard[i][0] == resultboard[i][1] && resultboard[i][1] == resultboard[i][2] && resultboard[i][0] != Mark.EMPTY) {
-                return (resultboard[i][0] == mark) ? 100 : -100;
-            }
-        }
-    
-        for (int j = 0; j < 3; j++) {
-            if (resultboard[0][j] == resultboard[1][j] && resultboard[1][j] == resultboard[2][j] && resultboard[0][j] != Mark.EMPTY) {
-                return (resultboard[0][j] == mark) ? 100 : -100;
-            }
-        }
-    
-        if (resultboard[0][0] == resultboard[1][1] && resultboard[1][1] == resultboard[2][2] && resultboard[0][0] != Mark.EMPTY) {
-            return (resultboard[0][0] == mark) ? 100 : -100;
-        }
-    
-        if (resultboard[0][2] == resultboard[1][1] && resultboard[1][1] == resultboard[2][0] && resultboard[0][2] != Mark.EMPTY) {
-            return (resultboard[0][2] == mark) ? 100 : -100;
-        }
-    
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (resultboard[i][j] == Mark.EMPTY) {
-                    return -200; 
-                }
-            }
-        }
+			if (resultboard[i][0] == resultboard[i][1] && resultboard[i][1] == resultboard[i][2] && resultboard[i][0] != Mark.EMPTY) {
+				return (resultboard[i][0] == mark) ? 100 : -100;
+			}
+		}
 
-        return 0;
+		for (int j = 0; j < 3; j++) {
+			if (resultboard[0][j] == resultboard[1][j] && resultboard[1][j] == resultboard[2][j] && resultboard[0][j] != Mark.EMPTY) {
+				return (resultboard[0][j] == mark) ? 100 : -100;
+			}
+		}
+
+		if (resultboard[0][0] == resultboard[1][1] && resultboard[1][1] == resultboard[2][2] && resultboard[0][0] != Mark.EMPTY) {
+			return (resultboard[0][0] == mark) ? 100 : -100;
+		}
+
+		if (resultboard[0][2] == resultboard[1][1] && resultboard[1][1] == resultboard[2][0] && resultboard[0][2] != Mark.EMPTY) {
+			return (resultboard[0][2] == mark) ? 100 : -100;
+		}
+
+		return 0;
 		//throw new UnsupportedOperationException();
 	}
 
@@ -188,6 +180,7 @@ public final class Board {
 					for (int j = 0; j < 9; j++) {
 						var cond = i / 3 != vsMove.getRow() % 3
 							|| j / 3 != vsMove.getCol() % 3;
+						cond &= !isSubBoardDone(new Move(j, i));
 						if (cond && board[j][i] == Mark.EMPTY) {
 							res.add(new Move(j, i));
 						}
@@ -221,14 +214,14 @@ public final class Board {
 		int count = 0;
 		int[] tmp1 = new int[] {
 			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1
+				1, 1, 1,
+				1, 1, 1
 		};
 
 		int[] tmp2 = new int[] {
 			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1
+				1, 1, 1,
+				1, 1, 1
 		};
 
 		for (int i = 0; i < 3; i++) {
