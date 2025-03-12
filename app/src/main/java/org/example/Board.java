@@ -131,14 +131,6 @@ public final class Board {
         if (resultboard[0][2] == resultboard[1][1] && resultboard[1][1] == resultboard[2][0] && resultboard[0][2] != Mark.EMPTY) {
             return (resultboard[0][2] == mark) ? 100 : -100;
         }
-    
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (resultboard[i][j] == Mark.EMPTY) {
-                    return -200; 
-                }
-            }
-        }
 
         return 0;
 		//throw new UnsupportedOperationException();
