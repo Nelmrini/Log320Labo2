@@ -21,7 +21,7 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-
+	private final int MAX_DEPTH = 4;
 
 	// Le constructeur reçoit en paramètre le
 	// joueur MAX (X ou O)
@@ -52,7 +52,7 @@ public final class CPUPlayer {
 			board.play(move, this.mySide);
 			numExploredNodes++;
 			//this.turn=board.flip(turn);
-			int score = minMax(board, 0, board.flip(mySide), move);
+			int score = minMax(board, MAX_DEPTH, board.flip(mySide), move);
 			//this.turn=board.flip(turn);
 			board.undo(move);
 
@@ -72,6 +72,7 @@ public final class CPUPlayer {
 	public int minMax(final Board board, final int profondeur,
 			final Mark turn, final Move lastMove) {
 		int score = board.evaluate(mySide);
+		if (profondeur == 0) return score;
 		if (score == 100 || score == -100) {
 			//||board.isFull() pas oublier de ajouter le .isFull()
 			return score;
@@ -82,7 +83,7 @@ public final class CPUPlayer {
 			for (Move move: board.getPossibleMoves(lastMove)) {
 				board.play(move, this.mySide);
 				this.numExploredNodes++;
-				score = minMax(board, profondeur + 1, board.flip(turn), move);
+				score = minMax(board, profondeur - 1, board.flip(turn), move);
 				board.undo(move);
 				if (score > highscore) {
 					highscore = score;
@@ -95,7 +96,7 @@ public final class CPUPlayer {
 			for (Move move: board.getPossibleMoves(lastMove)) {
 				board.play(move, this.mySide);
 				this.numExploredNodes++;
-				score = minMax(board, profondeur + 1, board.flip(turn), move);
+				score = minMax(board, profondeur - 1, board.flip(turn), move);
 				board.undo(move);
 				if (score < lowscore) {
 					lowscore = score;
