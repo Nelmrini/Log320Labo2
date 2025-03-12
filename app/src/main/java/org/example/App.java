@@ -44,13 +44,16 @@ public final class App {
 		// scanner.close();
 		//
 
-		Random random = new Random();
+		// Random random = new Random();
+		var ia = new CPUPlayer(link.getPlayer());
 
 		while (true) {
-			var moves = link.getBoard().getPossibleMoves(
-					link.getLastPlay()
-					);
-			var m = moves.get(random.nextInt(moves.size()));
+			// var moves = link.getBoard().getPossibleMoves(
+			// 		link.getLastPlay()
+			// 		);
+			//var m = moves.get(random.nextInt(moves.size()));
+			var m = ia.getNextMoveMinMax(link.getBoard(), link.getLastPlay()).getFirst();
+			System.out.println("Hallo?");
 			link.play(m);
 
 			System.out.println(link.getBoard());
