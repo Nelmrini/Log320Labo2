@@ -17,6 +17,7 @@ import java.util.List;
 public final class Board {
 	/** The internal representation of the tic tact toe board. **/
 	private final Mark[][] board;
+	Mark[][] resultboard;
 
 
 	// Ne pas changer la signature de cette méthode
@@ -76,7 +77,7 @@ public final class Board {
 	//           0   pour un match nul
 	// Ne pas changer la signature de cette méthode
 	public int evaluate(final Mark mark) {
-		Mark[][] resultboard = new Mark[3][3];
+		resultboard = new Mark[3][3];
 
 		for(int i = 0; i<3; i++){
 			for(int j = 0; j<3; j++){
@@ -148,6 +149,158 @@ public final class Board {
 
 		return 0;
 		//throw new UnsupportedOperationException();
+	}
+
+	public int evaluatethree(Mark[][] board, final Mark mark, int k, int w){
+		int result=0;
+		for (int i = 0; i < 3; i++) {
+			if (board[k+i][w+0] == board[k+i][w+1] && board[k+i][w+1] == board[k+i][w+2] && board[k+i][w+0] != Mark.EMPTY) {
+				//return (board[i][0] == mark) ? 100 : -100;
+				//resultboard[k/3][w/3]=board[k+i][w+0];
+				if(board[k+i][w+0]==mark){
+					result+=10;
+				}
+			}
+		}
+	
+		for (int j = 0; j < 3; j++) {
+			if (board[k+0][w+j] == board[k+1][w+j] && board[k+1][w+j] == board[k+2][w+j] && board[k+0][w+j] != Mark.EMPTY) {
+				//return (board[0][j] == mark) ? 100 : -100;
+				//resultboard[k/3][w/3]=board[k+0][w+j];
+				if(board[k+0][w+j]==mark){
+					result+=10;
+				}
+			}
+		}
+	
+		if (board[k+0][w+0] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+2] && board[k+0][w+0] != Mark.EMPTY) {
+			//return (board[0][0] == mark) ? 100 : -100;
+			//resultboard[k/3][w/3]=board[k+0][w+0];
+			if(board[k+0][w+0]==mark){
+				result+=10;
+			}
+		}
+	
+		if (board[k+0][w+2] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+0] && board[k+0][w+2] != Mark.EMPTY) {
+			//return (board[0][2] == mark) ? 100 : -100;
+			//resultboard[k/3][w/3]=board[k+0][w+2];
+			if(board[k+0][w+2]==mark){
+				result+=10;
+			}
+		}
+		return result;
+	}
+
+	public int evaluateHeuristic(Move move, final Mark mark){
+		int result = 0;
+		result+=evaluateHeuristicBigBoard(move, mark)*4;
+		if(move.getCol()%3==1&&move.getRow()%3==1){
+			result+=10;
+		}else if(move.getRow()%3!=1&&move.getCol()%3!=1){
+			result+=5;
+		}
+		for (int i = move.getRow()-move.getRow()%3; i < move.getRow()-move.getRow()%3+3; i++) {
+			for(int j = move.getCol()-move.getCol()%3; j < move.getCol()-move.getCol()%3+3; j++){
+				if(board[i][j]==mark&&(i==move.getRow()||j==move.getCol())){
+					if(board[i][j]==mark){
+						result+=1;
+					}
+					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
+						result-=1;
+					}
+				} 
+				if(board[i][j]==mark && i==j && move.getRow()==move.getCol()){
+					if(board[i][j]==mark){
+						result+=1;
+					}
+					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
+						result-=1;
+					}
+				}
+				if(board[i][j]==mark && (i%3)+(j%3)==2 && ((move.getRow()%3)+(move.getCol()%3)==2)){
+					if(board[i][j]==mark){
+						result+=1;
+					}
+					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
+						result-=1;
+					}
+				}
+			}
+		}
+		if(mark==Mark.X){
+			board[move.getRow()][move.getCol()]=Mark.O;
+			result+=evaluatethree(board, Mark.O, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
+			board[move.getRow()][move.getCol()]=Mark.X;
+			result+=evaluatethree(board, Mark.X, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3)*5;
+		} else {
+			board[move.getRow()][move.getCol()]=Mark.X;
+			result+=evaluatethree(board, Mark.X, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
+			board[move.getRow()][move.getCol()]=Mark.O;
+			result+=evaluatethree(board, Mark.O, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3)*5;
+
+		}
+
+		
+		return result;
+	}
+
+	public int evaluateHeuristicBigBoard(Move move, final Mark mark){
+		int result = 0;
+		if(move.getCol()%3==1&&move.getRow()%3==1){
+			result+=10;
+		}else if(move.getRow()%3!=1&&move.getCol()%3!=1){
+			result+=5;
+		}
+		if(resultboard[move.getRow()%3][move.getCol()%3]!=Mark.EMPTY){
+			result-=5;
+		}
+		for (int i = 0; i < resultboard.length; i++) {
+			for(int j = 0; j <  resultboard[0].length; j++){
+				if((i==move.getRow()%3||j==move.getCol()%3)){
+					if(resultboard[i][j]==mark){
+						result+=1;
+					}
+					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
+						result-=1;
+					}
+				} 
+				if(i==j && move.getRow()%3==move.getCol()%3){
+					if(resultboard[i][j]==mark){
+						result+=1;
+					}
+					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
+						result-=1;
+					}
+				}
+				if((i%3)+(j%3)==2 && ((move.getRow()%3)+(move.getCol()%3)==2)){
+					if(resultboard[i][j]==mark){
+						result+=1;
+					}
+					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
+						result-=1;
+					}
+				}
+			}
+		}
+		if(mark==Mark.X){
+			Mark tempMark = resultboard[move.getRow()%3][move.getCol()%3];
+			resultboard[move.getRow()%3][move.getCol()%3]=Mark.O;
+			result-=evaluatethree(resultboard, Mark.O, 0, 0)*3;
+			resultboard[move.getRow()%3][move.getCol()%3]=Mark.X;
+			result+=evaluatethree(resultboard, Mark.X, 0, 0);
+			resultboard[move.getRow()%3][move.getCol()%3] = tempMark;
+		} else {
+			Mark tempMark = resultboard[move.getRow()%3][move.getCol()%3];
+			resultboard[move.getRow()%3][move.getCol()%3]=Mark.X;
+			result-=evaluatethree(resultboard, Mark.X, 0, 0)*3;
+			resultboard[move.getRow()%3][move.getCol()%3]=Mark.O;
+			result+=evaluatethree(resultboard, Mark.O, 0, 0);
+			resultboard[move.getRow()%3][move.getCol()%3] = tempMark;
+
+		}
+
+		
+		return result;
 	}
 
 	public Mark nextPlayer() {
