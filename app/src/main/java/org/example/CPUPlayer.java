@@ -77,21 +77,20 @@ public final class CPUPlayer {
 			return score;
 		}
 		if (profondeur == 0) {
-			/* 
+			 
 			if(mySide==Mark.X){
 				return board.evaluateHeuristic(lastMove, mySide)-board.evaluateHeuristic(lastMove, Mark.O);
 			} else {
 				return board.evaluateHeuristic(lastMove, mySide)-board.evaluateHeuristic(lastMove, Mark.X);
 			}
-				*/
-				return (turn == mySide) ? board.evaluateHeuristic(lastMove, mySide) 
-									 : -board.evaluateHeuristic(lastMove, mySide);
+				
+				//return (turn == mySide) ? board.evaluateHeuristic(lastMove, mySide) : -board.evaluateHeuristic(lastMove, mySide);
 		}
 
 		if (mySide == turn) {
 			int highscore = Integer.MIN_VALUE;
 			for (Move move: board.getPossibleMoves(lastMove)) {
-				board.play(move, this.mySide);
+				board.play(move, turn);
 				this.numExploredNodes++;
 				score = minMax(board, profondeur - 1, board.flip(turn), move);
 				board.undo(move);
@@ -104,7 +103,7 @@ public final class CPUPlayer {
 		} else {
 			int lowscore = Integer.MAX_VALUE;
 			for (Move move: board.getPossibleMoves(lastMove)) {
-				board.play(move, this.mySide);
+				board.play(move, turn);
 				this.numExploredNodes++;
 				score = minMax(board, profondeur - 1, board.flip(turn), move);
 				board.undo(move);

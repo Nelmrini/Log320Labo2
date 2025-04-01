@@ -158,7 +158,9 @@ public final class Board {
 				//return (board[i][0] == mark) ? 100 : -100;
 				//resultboard[k/3][w/3]=board[k+i][w+0];
 				if(board[k+i][w+0]==mark){
-					result+=10;
+					result+=50;
+				} else {
+					result-=50;
 				}
 			}
 		}
@@ -168,7 +170,9 @@ public final class Board {
 				//return (board[0][j] == mark) ? 100 : -100;
 				//resultboard[k/3][w/3]=board[k+0][w+j];
 				if(board[k+0][w+j]==mark){
-					result+=10;
+					result+=50;
+				} else {
+					result-=50;
 				}
 			}
 		}
@@ -177,7 +181,9 @@ public final class Board {
 			//return (board[0][0] == mark) ? 100 : -100;
 			//resultboard[k/3][w/3]=board[k+0][w+0];
 			if(board[k+0][w+0]==mark){
-				result+=10;
+				result+=50;
+			} else {
+				result-=50;
 			}
 		}
 	
@@ -185,7 +191,9 @@ public final class Board {
 			//return (board[0][2] == mark) ? 100 : -100;
 			//resultboard[k/3][w/3]=board[k+0][w+2];
 			if(board[k+0][w+2]==mark){
-				result+=10;
+				result+=50;
+			} else {
+				result-=50;
 			}
 		}
 		return result;
@@ -193,25 +201,26 @@ public final class Board {
 
 	public int evaluateHeuristic(Move move, final Mark mark){
 		int result = 0;
-		result+=evaluateHeuristicBigBoard(move, mark)*4;
+		result+=evaluateHeuristicBigBoard(move, mark)*2;
 		if(move.getCol()%3==1&&move.getRow()%3==1){
 			result+=10;
 		}else if(move.getRow()%3!=1&&move.getCol()%3!=1){
 			result+=5;
 		}
+		
 		for (int i = move.getRow()-move.getRow()%3; i < move.getRow()-move.getRow()%3+3; i++) {
 			for(int j = move.getCol()-move.getCol()%3; j < move.getCol()-move.getCol()%3+3; j++){
 				if(board[i][j]==mark&&(i==move.getRow()||j==move.getCol())){
 					if(board[i][j]==mark){
-						result+=1;
+						result+=2;
 					}
 					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
-						result-=1;
+						result-=2;
 					}
 				} 
 				if(board[i][j]==mark && i==j && move.getRow()==move.getCol()){
 					if(board[i][j]==mark){
-						result+=1;
+						result+=2;
 					}
 					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
 						result-=1;
@@ -219,7 +228,7 @@ public final class Board {
 				}
 				if(board[i][j]==mark && (i%3)+(j%3)==2 && ((move.getRow()%3)+(move.getCol()%3)==2)){
 					if(board[i][j]==mark){
-						result+=1;
+						result+=2;
 					}
 					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
 						result-=1;
@@ -227,20 +236,23 @@ public final class Board {
 				}
 			}
 		}
+		
+		/* 
 		if(mark==Mark.X){
 			board[move.getRow()][move.getCol()]=Mark.O;
 			result+=evaluatethree(board, Mark.O, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
 			board[move.getRow()][move.getCol()]=Mark.X;
-			result+=evaluatethree(board, Mark.X, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3)*5;
+			result+=evaluatethree(board, Mark.X, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
 		} else {
 			board[move.getRow()][move.getCol()]=Mark.X;
 			result+=evaluatethree(board, Mark.X, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
 			board[move.getRow()][move.getCol()]=Mark.O;
-			result+=evaluatethree(board, Mark.O, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3)*5;
-
+			result+=evaluatethree(board, Mark.O, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
 		}
+		*/
+		result+=evaluatethree(board, mark, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
 
-		
+		//System.out.println(result + " " + move.toString());
 		return result;
 	}
 
@@ -251,14 +263,17 @@ public final class Board {
 		}else if(move.getRow()%3!=1&&move.getCol()%3!=1){
 			result+=5;
 		}
+		/* 
 		if(resultboard[move.getRow()%3][move.getCol()%3]!=Mark.EMPTY){
 			result-=5;
 		}
+			*/
+		
 		for (int i = 0; i < resultboard.length; i++) {
 			for(int j = 0; j <  resultboard[0].length; j++){
 				if((i==move.getRow()%3||j==move.getCol()%3)){
 					if(resultboard[i][j]==mark){
-						result+=1;
+						result+=2;
 					}
 					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
 						result-=1;
@@ -266,7 +281,7 @@ public final class Board {
 				} 
 				if(i==j && move.getRow()%3==move.getCol()%3){
 					if(resultboard[i][j]==mark){
-						result+=1;
+						result+=2;
 					}
 					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
 						result-=1;
@@ -274,7 +289,7 @@ public final class Board {
 				}
 				if((i%3)+(j%3)==2 && ((move.getRow()%3)+(move.getCol()%3)==2)){
 					if(resultboard[i][j]==mark){
-						result+=1;
+						result+=2;
 					}
 					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
 						result-=1;
@@ -282,22 +297,26 @@ public final class Board {
 				}
 			}
 		}
+		/* 
 		if(mark==Mark.X){
 			Mark tempMark = resultboard[move.getRow()%3][move.getCol()%3];
 			resultboard[move.getRow()%3][move.getCol()%3]=Mark.O;
-			result-=evaluatethree(resultboard, Mark.O, 0, 0)*3;
+			result-=evaluatethree(resultboard, Mark.O, 0, 0);
 			resultboard[move.getRow()%3][move.getCol()%3]=Mark.X;
-			result+=evaluatethree(resultboard, Mark.X, 0, 0);
+			result+=evaluatethree(resultboard, Mark.X, 0, 0)*2;
 			resultboard[move.getRow()%3][move.getCol()%3] = tempMark;
 		} else {
 			Mark tempMark = resultboard[move.getRow()%3][move.getCol()%3];
 			resultboard[move.getRow()%3][move.getCol()%3]=Mark.X;
-			result-=evaluatethree(resultboard, Mark.X, 0, 0)*3;
+			result-=evaluatethree(resultboard, Mark.X, 0, 0);
 			resultboard[move.getRow()%3][move.getCol()%3]=Mark.O;
 			result+=evaluatethree(resultboard, Mark.O, 0, 0);
 			resultboard[move.getRow()%3][move.getCol()%3] = tempMark;
 
 		}
+		*/
+		result+=evaluatethree(board, mark, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
+
 
 		
 		return result;
