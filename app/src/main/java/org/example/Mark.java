@@ -10,13 +10,15 @@ public enum Mark {
 	/** black player play with circles. **/
 	O,
 	/** no one played here. **/
-	EMPTY;
+	EMPTY,
+	/** the game is a tie. **/
+	TIE;
 
 	public Mark other() {
 		return switch (this) {
 			case X -> O;
 			case O -> X;
-			case EMPTY -> EMPTY;
+			default -> this;
 		};
 	}
 }

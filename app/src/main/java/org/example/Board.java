@@ -31,7 +31,12 @@ public final class Board {
 	}
 
 	public Board(final Board previous) {
-		this.board = previous.board.clone();
+		this.board = new Mark[9][9];
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				this.board[i][j] = previous.board[i][j];
+			}
+		}
 	}
 
 	// Place la pièce 'mark' sur le plateau, à la
@@ -40,6 +45,19 @@ public final class Board {
 	// Ne pas changer la signature de cette méthode
 	public void play(final Move m, final Mark mark) {
 		board[m.getRow()][m.getCol()] = mark;
+	}
+
+	/**
+	 * Create a new Board that correspond to this board
+	 * after playing the move m with the mark mark.
+	 * @param m The move to play
+	 * @param mark The mark to play
+	 * @return a new Board
+	 */
+	public Board immutablePlay(final Move m, final Mark mark) {
+		Board n = new Board(this);
+		n.play(m, mark);
+		return n;
 	}
 
 	public void undo(final Move m) {
@@ -62,6 +80,7 @@ public final class Board {
 							case EMPTY -> empty;
 							case X -> cross;
 							case O -> circle;
+							case TIE -> empty;
 						});
 			}
 			sb.append("|\n");
@@ -71,11 +90,67 @@ public final class Board {
 		return sb.toString();
 	}
 
+	private int evaluateSubBoard(final Mark mark, final Move move) {
+		var row = move.getRow() / 3;
+		var col = move.getCol() / 3;
+		Mark[] subBoard = {
+			Mark.EMPTY, Mark.EMPTY, Mark.EMPTY,
+			Mark.EMPTY, Mark.EMPTY, Mark.EMPTY,
+			Mark.EMPTY, Mark.EMPTY, Mark.EMPTY
+		};
 
-	// retourne  100 pour une victoire
-	//          -100 pour une défaite
-	//           0   pour un match nul
-	// Ne pas changer la signature de cette méthode
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				subBoard[j * 3 + i] = board[row * 3 + i][col * 3 + j];
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * determine la valeur de la position sur le plateau
+	 * du point de vue de mark
+	 * càd:
+	 * si mark gagne, 100
+	 * si mark perd,  -100
+	 * si match nul,   0
+	 * et interpolation entre ces valeurs
+	 * @param le point de vue de mark
+	 * @return la valeur de la position sur le plateau pour mark
+	 */
+	// public int evaluate(final Mark mark) {
+	// 	Mark tmp[] = {
+	// 		Mark.EMPTY, Mark.EMPTY, Mark.EMPTY,
+	// 		Mark.EMPTY, Mark.EMPTY, Mark.EMPTY,
+	// 		Mark.EMPTY, Mark.EMPTY, Mark.EMPTY
+	// 	};
+	// 	for (int i = 0; i < 3; i++) {
+	// 		for (int j = 0; j < 3; j++) {
+	// 			var done = isSubBoardDone(new Move(i*3, j*3));
+	// 			tmp[j * 3 + i] = done;
+	// 		}
+	// 	}
+	//
+	// 	int score = 0;
+	// 	for (int i = 0; i < 3; i++) {
+	// 		for (int j = 0; j < 3; j++) {
+	// 			var cs = tmp[j * 3 + i];
+	// 			if (cs == mark) {
+	// 				score += 20;
+	// 				if (i == 1) score += 10;
+	// 				if (j == 1) score += 10;
+	// 			}
+	// 			if (cs == mark.other()) {
+	// 				score -= 20;
+	// 				if (i == 1) score -= 10;
+	// 				if (j == 1) score -= 10;
+	// 			}
+	// 		}
+	// 	}
+	// 	if (score > 100) return 100;
+	// 	if (score < -100) return -100;
+	// 	return score;
+	// };
 	public int evaluate(final Mark mark) {
 		resultboard = new Mark[3][3];
 
@@ -92,25 +167,25 @@ public final class Board {
 						resultboard[k/3][w/3]=board[k+i][w+0];
 					}
 				}
-			
+
 				for (int j = 0; j < 3; j++) {
 					if (board[k+0][w+j] == board[k+1][w+j] && board[k+1][w+j] == board[k+2][w+j] && board[k+0][w+j] != Mark.EMPTY) {
 						//return (board[0][j] == mark) ? 100 : -100;
 						resultboard[k/3][w/3]=board[k+0][w+j];
 					}
 				}
-			
+
 				if (board[k+0][w+0] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+2] && board[k+0][w+0] != Mark.EMPTY) {
 					//return (board[0][0] == mark) ? 100 : -100;
 					resultboard[k/3][w/3]=board[k+0][w+0];
 				}
-			
+
 				if (board[k+0][w+2] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+0] && board[k+0][w+2] != Mark.EMPTY) {
 					//return (board[0][2] == mark) ? 100 : -100;
 					resultboard[k/3][w/3]=board[k+0][w+2];
 				}
 			}
-			
+
 		}
 
 		for (int i = 0; i < 3; i++) {
@@ -361,12 +436,12 @@ public final class Board {
 			var done = isSubBoardDone(new Move(
 						vsMove.getRow() % 3 * 3,
 						vsMove.getCol() % 3 * 3));
-			if (done) {
+			if (done != Mark.EMPTY) {
 				for (int i = 0; i < 9; i++) {
 					for (int j = 0; j < 9; j++) {
 						var cond = i / 3 != vsMove.getRow() % 3
 							|| j / 3 != vsMove.getCol() % 3;
-						cond &= !isSubBoardDone(new Move(j, i));
+						cond &= (isSubBoardDone(new Move(j, i)) == Mark.EMPTY);
 						if (cond && board[j][i] == Mark.EMPTY) {
 							res.add(new Move(j, i));
 						}
@@ -391,33 +466,36 @@ public final class Board {
 	/**
 	 * Check if a specific sub board is won/lost/filled.
 	 * @param move any place on the sub board to check
-	 * @return true if the sub board can't be played on
+	 * @return Mark.X if X won, Mark.O if O won, Mark.TIE if tie
+	 * Mark.EMPTY if the game is still going
 	 */
-	private boolean isSubBoardDone(final Move move) {
+	private Mark isSubBoardDone(final Move move) {
 		int row = move.getRow() / 3;
 		int col = move.getCol() / 3;
 
 		int count = 0;
+		// For player Mark.X
 		int[] tmp1 = new int[] {
 			1, 1, 1,
-				1, 1, 1,
-				1, 1, 1
+			1, 1, 1,
+			1, 1, 1
 		};
 
+		// For player Mark.O
 		int[] tmp2 = new int[] {
 			1, 1, 1,
-				1, 1, 1,
-				1, 1, 1
+			1, 1, 1,
+			1, 1, 1
 		};
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				switch (board[3 * row + i][3 * col + j]) {
-					case X -> {
+					case O -> {
 						tmp1[j * 3 + i] *= 0;
 						count++;
 					}
-					case O -> {
+					case X -> {
 						tmp2[j * 3 + i] *= 0;
 						count++;
 					}
@@ -429,27 +507,88 @@ public final class Board {
 			}
 		}
 
-		if (count == 9) return true;
+		if (count == 9) return Mark.TIE;
 
-		if (tmp1[0] + tmp1[1] + tmp1[2] == 3) return true;
-		if (tmp1[3] + tmp1[4] + tmp1[5] == 3) return true;
-		if (tmp1[6] + tmp1[7] + tmp1[8] == 3) return true;
-		if (tmp1[0] + tmp1[3] + tmp1[6] == 3) return true;
-		if (tmp1[1] + tmp1[4] + tmp1[7] == 3) return true;
-		if (tmp1[2] + tmp1[5] + tmp1[8] == 3) return true;
-		if (tmp1[0] + tmp1[4] + tmp1[8] == 3) return true;
-		if (tmp1[2] + tmp1[4] + tmp1[6] == 3) return true;
+		if (tmp1[0] + tmp1[1] + tmp1[2] == 3) return Mark.X;
+		if (tmp1[3] + tmp1[4] + tmp1[5] == 3) return Mark.X;
+		if (tmp1[6] + tmp1[7] + tmp1[8] == 3) return Mark.X;
+		if (tmp1[0] + tmp1[3] + tmp1[6] == 3) return Mark.X;
+		if (tmp1[1] + tmp1[4] + tmp1[7] == 3) return Mark.X;
+		if (tmp1[2] + tmp1[5] + tmp1[8] == 3) return Mark.X;
+		if (tmp1[0] + tmp1[4] + tmp1[8] == 3) return Mark.X;
+		if (tmp1[2] + tmp1[4] + tmp1[6] == 3) return Mark.X;
 
-		if (tmp2[0] + tmp2[1] + tmp2[2] == 3) return true;
-		if (tmp2[3] + tmp2[4] + tmp2[5] == 3) return true;
-		if (tmp2[6] + tmp2[7] + tmp2[8] == 3) return true;
-		if (tmp2[0] + tmp2[3] + tmp2[6] == 3) return true;
-		if (tmp2[1] + tmp2[4] + tmp2[7] == 3) return true;
-		if (tmp2[2] + tmp2[5] + tmp2[8] == 3) return true;
-		if (tmp2[0] + tmp2[4] + tmp2[8] == 3) return true;
-		if (tmp2[2] + tmp2[4] + tmp2[6] == 3) return true;
+		if (tmp2[0] + tmp2[1] + tmp2[2] == 3) return Mark.O;
+		if (tmp2[3] + tmp2[4] + tmp2[5] == 3) return Mark.O;
+		if (tmp2[6] + tmp2[7] + tmp2[8] == 3) return Mark.O;
+		if (tmp2[0] + tmp2[3] + tmp2[6] == 3) return Mark.O;
+		if (tmp2[1] + tmp2[4] + tmp2[7] == 3) return Mark.O;
+		if (tmp2[2] + tmp2[5] + tmp2[8] == 3) return Mark.O;
+		if (tmp2[0] + tmp2[4] + tmp2[8] == 3) return Mark.O;
+		if (tmp2[2] + tmp2[4] + tmp2[6] == 3) return Mark.O;
 
-		return false;
+		return Mark.EMPTY;
+	}
+
+
+	/**
+	 * Check if game is done, ie won lost or tie
+	 * @return Mark.TIE for Tie, Mark.X for X, Mark.O for O Mark.EMPTY if game is not done
+	 */
+	public Mark isBoardDone() {
+		int count = 0;
+		int[] tmp1 = new int[] {
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1
+		};
+
+		int[] tmp2 = new int[] {
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1
+		};
+
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				switch (isSubBoardDone(new Move(i*3, j*3))) {
+					case O -> {
+						tmp1[j * 3 + i] *= 0;
+						count++;
+					}
+					case X -> {
+						tmp2[j * 3 + i] *= 0;
+						count++;
+					}
+					default -> {
+						tmp1[j * 3 + i] *= 0;
+						tmp2[j * 3 + i] *= 0;
+					}
+				}
+			}
+		}
+
+		if (count == 9) return Mark.TIE;
+
+		if (tmp1[0] + tmp1[1] + tmp1[2] == 3) return Mark.X;
+		if (tmp1[3] + tmp1[4] + tmp1[5] == 3) return Mark.X;
+		if (tmp1[6] + tmp1[7] + tmp1[8] == 3) return Mark.X;
+		if (tmp1[0] + tmp1[3] + tmp1[6] == 3) return Mark.X;
+		if (tmp1[1] + tmp1[4] + tmp1[7] == 3) return Mark.X;
+		if (tmp1[2] + tmp1[5] + tmp1[8] == 3) return Mark.X;
+		if (tmp1[0] + tmp1[4] + tmp1[8] == 3) return Mark.X;
+		if (tmp1[2] + tmp1[4] + tmp1[6] == 3) return Mark.X;
+
+		if (tmp2[0] + tmp2[1] + tmp2[2] == 3) return Mark.O;
+		if (tmp2[3] + tmp2[4] + tmp2[5] == 3) return Mark.O;
+		if (tmp2[6] + tmp2[7] + tmp2[8] == 3) return Mark.O;
+		if (tmp2[0] + tmp2[3] + tmp2[6] == 3) return Mark.O;
+		if (tmp2[1] + tmp2[4] + tmp2[7] == 3) return Mark.O;
+		if (tmp2[2] + tmp2[5] + tmp2[8] == 3) return Mark.O;
+		if (tmp2[0] + tmp2[4] + tmp2[8] == 3) return Mark.O;
+		if (tmp2[2] + tmp2[4] + tmp2[6] == 3) return Mark.O;
+
+		return Mark.EMPTY;
 	}
 
 	/**

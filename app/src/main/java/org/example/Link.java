@@ -33,7 +33,7 @@ public final class Link {
 	private BufferedOutputStream output;
 
 	/** the server board. **/
-	private final Board board;
+	private Board board;
 	/** the role the AI is playing. **/
 	private final Mark player;
 	/** the last move the server played. **/
@@ -77,7 +77,7 @@ public final class Link {
 						default -> Mark.EMPTY;
 					};
 
-					board.play(m, mark);
+					board = board.immutablePlay(m, mark);
 				}
 			}
 
@@ -100,7 +100,7 @@ public final class Link {
 	 * @param move where in the board the move is play
 	 */
 	public void play(final Move move) {
-		board.play(move, player);
+		board = board.immutablePlay(move, player);
 		var msg = move.toString();
 
 		try {
@@ -144,7 +144,7 @@ public final class Link {
 					var mark = player.other();
 					var move = new Move(pos[0], pos[1]);
 					lastServerPlay = move;
-					board.play(move, mark);
+					board = board.immutablePlay(move, mark);
 					System.out.println("server has player, you're up");
 				}
 				case 4 -> {

@@ -82,6 +82,114 @@ public class BoardTest {
 		assertEquals(expected, board.toString());
 	}
 
+
+	@Test
+	public void testIsBoardDoneDiag() {
+		// board done
+		// "|------|------|------|\n" +
+		// "|      |      |  ❌  |\n" +
+		// "|      |      |  ❌  |\n" +
+		// "|      |      |  ❌  |\n" +
+		// "|------|------|------|\n" +
+		// "|      |    ❌|      |\n" +
+		// "|      |  ❌  |      |\n" +
+		// "|      |❌    |      |\n" +
+		// "|------|------|------|\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|❌❌❌|      |      |\n" +
+		// "|------|------|------|\n";
+		var board = new Board();
+		board.play(Board.strToMov("A1"), Mark.X);
+		board.play(Board.strToMov("B1"), Mark.X);
+		board.play(Board.strToMov("C1"), Mark.X);
+		board.play(Board.strToMov("D4"), Mark.X);
+		board.play(Board.strToMov("E5"), Mark.X);
+		board.play(Board.strToMov("F6"), Mark.X);
+		board.play(Board.strToMov("H7"), Mark.X);
+		board.play(Board.strToMov("H8"), Mark.X);
+		board.play(Board.strToMov("H9"), Mark.X);
+
+		assertEquals(Mark.X, board.isBoardDone());
+	}
+	@Test
+	public void testIsBoardDoneLost() {
+		// board done
+		// "|------|------|------|\n" +
+		// "|      |🔵    |    🔵|\n" +
+		// "|      |🔵    |  🔵  |\n" +
+		// "|🔵🔵🔵|🔵    |🔵    |\n" +
+		// "|------|------|------|\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|------|------|------|\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|------|------|------|\n";
+		var board = new Board();
+		board.play(Board.strToMov("A7"), Mark.O);
+		board.play(Board.strToMov("B7"), Mark.O);
+		board.play(Board.strToMov("C7"), Mark.O);
+		board.play(Board.strToMov("D7"), Mark.O);
+		board.play(Board.strToMov("D8"), Mark.O);
+		board.play(Board.strToMov("D9"), Mark.O);
+		board.play(Board.strToMov("G7"), Mark.O);
+		board.play(Board.strToMov("H8"), Mark.O);
+		board.play(Board.strToMov("I9"), Mark.O);
+
+		assertEquals(Mark.O, board.isBoardDone());
+	}
+
+
+	@Test
+	public void testIsBoardDoneWin() {
+		// board done
+		// "|------|------|------|\n" +
+		// "|      |❌    |    ❌|\n" +
+		// "|      |❌    |  ❌  |\n" +
+		// "|❌❌❌|❌    |❌    |\n" +
+		// "|------|------|------|\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|------|------|------|\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|      |      |      |\n" +
+		// "|------|------|------|\n";
+		var board = new Board();
+		board.play(Board.strToMov("A7"), Mark.X);
+		board.play(Board.strToMov("B7"), Mark.X);
+		board.play(Board.strToMov("C7"), Mark.X);
+		board.play(Board.strToMov("D7"), Mark.X);
+		board.play(Board.strToMov("D8"), Mark.X);
+		board.play(Board.strToMov("D9"), Mark.X);
+		board.play(Board.strToMov("G7"), Mark.X);
+		board.play(Board.strToMov("H8"), Mark.X);
+		board.play(Board.strToMov("I9"), Mark.X);
+
+		assertEquals(Mark.X, board.isBoardDone());
+	}
+
+	@Test
+	public void testGetPossibleMovesH8() {
+		var board = new Board();
+		Set<Move> moves = new HashSet<>(board.getPossibleMoves(Board.strToMov("H8")));
+		Set<Move> expected = new HashSet<>();
+		expected.add(Board.strToMov("D6"));
+		expected.add(Board.strToMov("D5"));
+		expected.add(Board.strToMov("D4"));
+		expected.add(Board.strToMov("E6"));
+		expected.add(Board.strToMov("E5"));
+		expected.add(Board.strToMov("E4"));
+		expected.add(Board.strToMov("F6"));
+		expected.add(Board.strToMov("F5"));
+		expected.add(Board.strToMov("F4"));
+		assertEquals(expected, moves);
+	}
+
 	@Test
 	public void testGetPossibleMoves() {
 		// second play

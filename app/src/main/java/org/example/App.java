@@ -52,9 +52,11 @@ public final class App {
 			// 		link.getLastPlay()
 			// 		);
 			//var m = moves.get(random.nextInt(moves.size()));
-			var m = ia.getNextMoveMinMax(link.getBoard(), link.getLastPlay()).getFirst();
-			System.out.println("Hallo?");
-			link.play(m);
+			Move myPlay;
+			var moves = ia.getNextMoveMinMax(link.getBoard(), link.getLastPlay());
+			myPlay = moves.getLast();
+			System.out.println("Played " + myPlay);
+			link.play(myPlay);
 
 			System.out.println(link.getBoard());
 		}
