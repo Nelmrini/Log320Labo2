@@ -226,176 +226,108 @@ public final class Board {
 		//throw new UnsupportedOperationException();
 	}
 
-	public int evaluatethree(Mark[][] board, final Mark mark, int k, int w){
-		int result=0;
+	public int evaluateHeuristicCustom(Mark mark) {
+		int totalScore = 0;
+		Mark opponent = mark.other();
+	
+		for (int subRow = 0; subRow < 3; subRow++) {
+			for (int subCol = 0; subCol < 3; subCol++) {
+				int baseRow = subRow * 3;
+				int baseCol = subCol * 3;
+				int subScore = evaluateSubBoard(baseRow, baseCol, mark, opponent);
+				if (subRow == 1 && subCol == 1) {
+					subScore *= 2;
+				}
+				totalScore += subScore;
+			}
+		}
+	
+		totalScore += evaluateGlobalBoard(mark, opponent);
+		
+		return totalScore;
+	}
+	
+	private int evaluateSubBoard(int baseRow, int baseCol, Mark mark, Mark opponent) {
+		int score = 0;
+	
 		for (int i = 0; i < 3; i++) {
-			if (board[k+i][w+0] == board[k+i][w+1] && board[k+i][w+1] == board[k+i][w+2] && board[k+i][w+0] != Mark.EMPTY) {
-				//return (board[i][0] == mark) ? 100 : -100;
-				//resultboard[k/3][w/3]=board[k+i][w+0];
-				if(board[k+i][w+0]==mark){
-					result+=50;
+			int rowCountMark = 0, rowCountOpp = 0, rowCountEmpty = 0;
+			int colCountMark = 0, colCountOpp = 0, colCountEmpty = 0;
+			for (int j = 0; j < 3; j++) {
+				if (board[baseRow + i][baseCol + j] == mark) {
+					rowCountMark++;
+				} else if (board[baseRow + i][baseCol + j] == opponent) {
+					rowCountOpp++;
 				} else {
-					result-=50;
+					rowCountEmpty++;
 				}
-			}
-		}
-	
-		for (int j = 0; j < 3; j++) {
-			if (board[k+0][w+j] == board[k+1][w+j] && board[k+1][w+j] == board[k+2][w+j] && board[k+0][w+j] != Mark.EMPTY) {
-				//return (board[0][j] == mark) ? 100 : -100;
-				//resultboard[k/3][w/3]=board[k+0][w+j];
-				if(board[k+0][w+j]==mark){
-					result+=50;
+				// Column
+				if (board[baseRow + j][baseCol + i] == mark) {
+					colCountMark++;
+				} else if (board[baseRow + j][baseCol + i] == opponent) {
+					colCountOpp++;
 				} else {
-					result-=50;
+					colCountEmpty++;
 				}
 			}
+			score += evaluateLine(rowCountMark, rowCountOpp, rowCountEmpty);
+			score += evaluateLine(colCountMark, colCountOpp, colCountEmpty);
 		}
 	
-		if (board[k+0][w+0] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+2] && board[k+0][w+0] != Mark.EMPTY) {
-			//return (board[0][0] == mark) ? 100 : -100;
-			//resultboard[k/3][w/3]=board[k+0][w+0];
-			if(board[k+0][w+0]==mark){
-				result+=50;
+		// Evaluate diagonals
+		int diag1Mark = 0, diag1Opp = 0, diag1Empty = 0;
+		int diag2Mark = 0, diag2Opp = 0, diag2Empty = 0;
+		for (int i = 0; i < 3; i++) {
+			// Main diagonal
+			if (board[baseRow + i][baseCol + i] == mark) {
+				diag1Mark++;
+			} else if (board[baseRow + i][baseCol + i] == opponent) {
+				diag1Opp++;
 			} else {
-				result-=50;
+				diag1Empty++;
+			}
+			// Anti-diagonal
+			if (board[baseRow + i][baseCol + (2 - i)] == mark) {
+				diag2Mark++;
+			} else if (board[baseRow + i][baseCol + (2 - i)] == opponent) {
+				diag2Opp++;
+			} else {
+				diag2Empty++;
 			}
 		}
+		score += evaluateLine(diag1Mark, diag1Opp, diag1Empty);
+		score += evaluateLine(diag2Mark, diag2Opp, diag2Empty);
+		
+		return score;
+	}
 	
-		if (board[k+0][w+2] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+0] && board[k+0][w+2] != Mark.EMPTY) {
-			//return (board[0][2] == mark) ? 100 : -100;
-			//resultboard[k/3][w/3]=board[k+0][w+2];
-			if(board[k+0][w+2]==mark){
-				result+=50;
-			} else {
-				result-=50;
-				//files
-			}
-		}
-		return result;
+
+	private int evaluateLine(int countMark, int countOpp, int countEmpty) {
+		if (countMark == 3) return 1000;
+		if (countOpp == 3) return -1000;
+		
+		int score = 0;
+		if (countMark == 2 && countEmpty == 1) score += 50;
+		if (countMark == 1 && countEmpty == 2) score += 10;
+		if (countOpp == 2 && countEmpty == 1) score -= 50;
+		if (countOpp == 1 && countEmpty == 2) score -= 10;
+		
+		return score;
 	}
+	
 
-	public int evaluateHeuristic(Move move, final Mark mark){
-		int result = 0;
-		result+=evaluateHeuristicBigBoard(move, mark)*2;
-		if(move.getCol()%3==1&&move.getRow()%3==1){
-			result+=10;
-		}else if(move.getRow()%3!=1&&move.getCol()%3!=1){
-			result+=5;
-		}
-		
-		for (int i = move.getRow()-move.getRow()%3; i < move.getRow()-move.getRow()%3+3; i++) {
-			for(int j = move.getCol()-move.getCol()%3; j < move.getCol()-move.getCol()%3+3; j++){
-				if(board[i][j]==mark&&(i==move.getRow()||j==move.getCol())){
-					if(board[i][j]==mark){
-						result+=2;
-					}
-					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
-						result-=2;
-					}
-				} 
-				if(board[i][j]==mark && i==j && move.getRow()==move.getCol()){
-					if(board[i][j]==mark){
-						result+=2;
-					}
-					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
-						result-=1;
-					}
-				}
-				if(board[i][j]==mark && (i%3)+(j%3)==2 && ((move.getRow()%3)+(move.getCol()%3)==2)){
-					if(board[i][j]==mark){
-						result+=2;
-					}
-					if(board[i][j]!=mark && board[i][j]!=Mark.EMPTY){
-						result-=1;
-					}
-				}
-			}
-		}
-		
-		/* 
-		if(mark==Mark.X){
-			board[move.getRow()][move.getCol()]=Mark.O;
-			result+=evaluatethree(board, Mark.O, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
-			board[move.getRow()][move.getCol()]=Mark.X;
-			result+=evaluatethree(board, Mark.X, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
-		} else {
-			board[move.getRow()][move.getCol()]=Mark.X;
-			result+=evaluatethree(board, Mark.X, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
-			board[move.getRow()][move.getCol()]=Mark.O;
-			result+=evaluatethree(board, Mark.O, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
-		}
-		*/
-		result+=evaluatethree(board, mark, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
-
-		//System.out.println(result + " " + move.toString());
-		return result;
-	}
-
-	public int evaluateHeuristicBigBoard(Move move, final Mark mark){
-		int result = 0;
-		if(move.getCol()%3==1&&move.getRow()%3==1){
-			result+=10;
-		}else if(move.getRow()%3!=1&&move.getCol()%3!=1){
-			result+=5;
-		}
-		/* 
-		if(resultboard[move.getRow()%3][move.getCol()%3]!=Mark.EMPTY){
-			result-=5;
-		}
-			*/
-		
+	private int evaluateGlobalBoard(Mark mark, Mark opponent) {
+		int score = 0;
 		for (int i = 0; i < resultboard.length; i++) {
-			for(int j = 0; j <  resultboard[0].length; j++){
-				if((i==move.getRow()%3||j==move.getCol()%3)){
-					if(resultboard[i][j]==mark){
-						result+=2;
-					}
-					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
-						result-=1;
-					}
-				} 
-				if(i==j && move.getRow()%3==move.getCol()%3){
-					if(resultboard[i][j]==mark){
-						result+=2;
-					}
-					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
-						result-=1;
-					}
-				}
-				if((i%3)+(j%3)==2 && ((move.getRow()%3)+(move.getCol()%3)==2)){
-					if(resultboard[i][j]==mark){
-						result+=2;
-					}
-					if(resultboard[i][j]!=mark && resultboard[i][j]!=Mark.EMPTY){
-						result-=1;
-					}
+			for (int j = 0; j < resultboard[0].length; j++) {
+				if (resultboard[i][j] == mark) {
+					score += 500;
+				} else if (resultboard[i][j] == opponent) {
+					score -= 500;
 				}
 			}
 		}
-		/* 
-		if(mark==Mark.X){
-			Mark tempMark = resultboard[move.getRow()%3][move.getCol()%3];
-			resultboard[move.getRow()%3][move.getCol()%3]=Mark.O;
-			result-=evaluatethree(resultboard, Mark.O, 0, 0);
-			resultboard[move.getRow()%3][move.getCol()%3]=Mark.X;
-			result+=evaluatethree(resultboard, Mark.X, 0, 0)*2;
-			resultboard[move.getRow()%3][move.getCol()%3] = tempMark;
-		} else {
-			Mark tempMark = resultboard[move.getRow()%3][move.getCol()%3];
-			resultboard[move.getRow()%3][move.getCol()%3]=Mark.X;
-			result-=evaluatethree(resultboard, Mark.X, 0, 0);
-			resultboard[move.getRow()%3][move.getCol()%3]=Mark.O;
-			result+=evaluatethree(resultboard, Mark.O, 0, 0);
-			resultboard[move.getRow()%3][move.getCol()%3] = tempMark;
-
-		}
-		*/
-		result+=evaluatethree(board, mark, move.getRow()-move.getRow()%3, move.getCol()-move.getCol()%3);
-
-
-		
-		return result;
+		return score;
 	}
 
 	public Mark nextPlayer() {

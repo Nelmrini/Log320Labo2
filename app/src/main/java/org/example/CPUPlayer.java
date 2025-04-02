@@ -1,15 +1,11 @@
 package org.example;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Collectors;
 
 // IMPORTANT: Il ne faut pas changer la signature des méthodes
 // de cette classe, ni le nom de la classe.
@@ -30,7 +26,7 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final int MAX_DEPTH = 8;
+	private final int MAX_DEPTH =6;
 
 	private ExecutorService executor;
 
@@ -81,7 +77,7 @@ public final class CPUPlayer {
 		));
 		}
 
-		int bestScore = -100;
+		int bestScore = Integer.MIN_VALUE;
 		var bestMove = new ArrayList<Move>();
 
 		// dispatch the tree expansion to the workers
@@ -89,12 +85,35 @@ public final class CPUPlayer {
 			for (Future<Tuple<Move, Integer>> f : futures) {
 				if (f.get().second() > bestScore) {
 					bestScore = f.get().second();
+					bestMove.clear();
+					bestMove.add(f.get().first());
+				} else if (f.get().second() == bestScore) {
+					bestScore = f.get().second();
 					bestMove.add(f.get().first());
 				}
 			}
 		} catch (InterruptedException | ExecutionException e) { e.printStackTrace(); }
+		System.out.println(bestMove.size());
+
+		bestScore = Integer.MIN_VALUE;
+		Move best=bestMove.getFirst();
+		System.out.println(bestMove.toString());
+		for(Move move: bestMove){
+			board.play(move, mySide);
+			board.evaluate(mySide);
+			int score = board.evaluateHeuristicCustom(mySide);
+			board.undo(move);
+			if(score>bestScore){
+				bestScore=score;
+				best=move;
+			}
+		}
+		bestMove.clear();
+		bestMove.add(best);
 
 		return bestMove;
+
+		//return bestMove;
 	}
 
 	/**
@@ -121,7 +140,13 @@ public final class CPUPlayer {
 
 		if (depth == MAX_DEPTH) {
 			int score = b.evaluate(player);
-			return score;
+			//System.out.println("here");
+			if(score!=0){
+				score*=10;
+				return score;
+			} 
+			return b.evaluateHeuristicCustom(mySide);
+			
 		}
 
 		List<Move> possibleMoves = b.getPossibleMoves(move);
