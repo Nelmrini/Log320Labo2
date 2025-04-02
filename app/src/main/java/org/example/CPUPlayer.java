@@ -122,7 +122,7 @@ public final class CPUPlayer {
 		if (depth == MAX_DEPTH) {
 			int score = b.evaluate(player);
 			return score;
-		};
+		}
 
 		List<Move> possibleMoves = b.getPossibleMoves(move);
 

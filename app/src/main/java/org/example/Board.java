@@ -269,6 +269,7 @@ public final class Board {
 				result+=50;
 			} else {
 				result-=50;
+				//files
 			}
 		}
 		return result;
