@@ -7,9 +7,12 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 // IMPORTANT: Il ne faut pas changer la signature des méthodes
 // de cette classe, ni le nom de la classe.
@@ -43,7 +46,7 @@ public final class CPUPlayer {
 		this.mySide = cpu;
 		int cores = Runtime.getRuntime().availableProcessors();
 		System.out.println("This system has " + cores + " cores");
-		this.executor = Executors.newFixedThreadPool(cores - 1); // who even runs less than a dual core?
+		this.executor = Executors.newFixedThreadPool(cores); // who even runs less than a dual core?
 	}
 
 	public void shutdownExecutor() {
@@ -153,38 +156,42 @@ public final class CPUPlayer {
 	/** how many games **/
 	private static final int MONTE_CARLO_PLAYOUTS = 10000;
 	private Integer monteCarlo(final Move move, final Board board, final Mark player) {
-		List<Future<Integer>> futures = new ArrayList<>();
 
-		for (int i = 0; i < MONTE_CARLO_PLAYOUTS; i++) {
-			futures.add(executor.submit(() -> {
-				Random rand = new Random();
-				Board localBoard = new Board(board);
-				localBoard.play(move, player);
-				Move localLstMove = move;
-				for (int j = 0; j < MONTE_CARLO_ITERATIONS; j++) {
-					Mark currentPlayer = localBoard.nextPlayer();
-					var currentMoves = localBoard.getPossibleMoves(localLstMove);
-					if (currentMoves.size() == 0) break;
-					var currentMove = currentMoves.get(rand.nextInt(currentMoves.size()));
-					localLstMove = currentMove;
-					localBoard.play(currentMove, currentPlayer);
-					if (localBoard.isBoardDone() != Mark.EMPTY) break;
-				}
-				var done = localBoard.isBoardDone();
-				if (done == player) return 100;
-				if (done == player.other()) return -100;
-				return 0;
-			}));
-		}
-
-		int sum = 0;
-		try {
-			for (Future<Integer> f : futures) {
-				sum += f.get();
-			}
-		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-		}
-		return sum / MONTE_CARLO_PLAYOUTS;
+		var pool = new ForkJoinPool();
+		Double average = pool.submit(() ->
+			IntStream
+				.range(0, MONTE_CARLO_PLAYOUTS)
+				.parallel()
+				.map(i -> {
+					Board localBoard = new Board(board);
+					localBoard.play(move, player);
+					Move localLstMove = move;
+					for (int j = 0; j < MONTE_CARLO_ITERATIONS; j++) {
+						Mark currentPlayer = localBoard.nextPlayer();
+						var currentMoves = localBoard.getPossibleMoves(localLstMove);
+						if (currentMoves.size() == 0) break;
+						int index = ThreadLocalRandom.current().nextInt(currentMoves.size());
+						var currentMove = currentMoves.get(index);
+						localLstMove = currentMove;
+						localBoard.play(currentMove, currentPlayer);
+						if (localBoard.isBoardDone() != Mark.EMPTY) break;
+					}
+					var done = localBoard.isBoardDone();
+					Integer r = 0;
+					if (done == player) {
+						r = 100;
+						return r;
+					}
+					if (done == player.other()) {
+						r = -100;
+						return r;
+					}
+					return r;
+				})
+				.average()
+				.orElse(0)
+		).join();
+		pool.shutdown();
+		return average.intValue();
 	}
 }
