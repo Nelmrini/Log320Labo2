@@ -152,7 +152,7 @@ public final class CPUPlayer {
 
 
 	/** how many play in each game **/
-	private static final int MONTE_CARLO_ITERATIONS = 50;
+	private static final int MONTE_CARLO_ITERATIONS = 500;
 	/** how many games **/
 	private static final int MONTE_CARLO_PLAYOUTS = 5000;
 	private Integer monteCarlo(final Move move, final Board board, final Mark player) {
