@@ -158,13 +158,13 @@ public final class CPUPlayer {
 			if (player == this.mySide) {
 				// We want to maximize the score
 				bestScore = Math.max(bestScore, r);
-				alpha = Math.max(alpha, bestScore);
-				if (alpha >= beta) break;
+				// alpha = Math.max(alpha, bestScore);
+				// if (alpha >= beta) break;
 			} else {
 				// We want to minimize the score
 				bestScore = Math.min(bestScore, r);
-				beta = Math.min(beta, bestScore);
-				if (beta <= alpha) break;
+				// beta = Math.min(beta, bestScore);
+				// if (beta <= alpha) break;
 			}
 		}
 
