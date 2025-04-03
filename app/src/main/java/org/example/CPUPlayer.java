@@ -28,7 +28,7 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final int MAX_DEPTH = 7;
+	private final int MAX_DEPTH = 3;
 
 	private ExecutorService executor;
 
@@ -73,7 +73,7 @@ public final class CPUPlayer {
 		// dispatch the evaluation of the moves to the workers
 		for (Move m : possibleMoves) {
 			futures.add(executor.submit(() -> {
-				var score = evaluateMove(m, board, 0, -100, 100);
+				var score = evaluateMove(m, board, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
 				return new Tuple<>(m, score);
 			}
 		));
@@ -92,11 +92,11 @@ public final class CPUPlayer {
 		//return only the moves that have the same score
 		// System.out.println("All moves: " + results);
 		results.sort(Comparator.comparing(t -> ((Tuple<Move,Integer>) t).second()).reversed());
-		// System.out.println("Sorted moves: " + results);
+		System.out.println("Sorted moves: " + results);
 		List<Move> bestMoves = new ArrayList<>();
-		int bestScore = 101;
+		Integer bestScore = null;
 		for (Tuple<Move, Integer> t : results) {
-			if (bestScore == 101) {
+			if (bestScore == null) {
 				bestScore = t.second();
 				bestMoves.add(t.first());
 			} else if (t.second() == bestScore) {
@@ -129,34 +129,35 @@ public final class CPUPlayer {
 		if (done == Mark.TIE) {
 			return 0;
 		} else if (done == player) {
-			return 100;
+			System.out.println("This game can be won!");
+			return Integer.MAX_VALUE;
 		} else if (done == player.other()) {
-			return -100;
+			System.out.println("This game can be lost :(!");
+			return Integer.MIN_VALUE;
 		}
 
 		if (depth == MAX_DEPTH) {
-			b.evaluate(player);
-			int score = b.evaluateHeuristicCustom(mySide);
+			int score = b.evaluate(mySide);
 			// System.out.println("Score is " + score);
 			return score;
 		}
 
 		List<Move> possibleMoves = b.getPossibleMoves(move);
 
-		int bestScore = (player == this.mySide)?-100:100;
+		int bestScore = (player == this.mySide)?Integer.MIN_VALUE:Integer.MAX_VALUE;
 
 		for (Move m : possibleMoves) {
 			var r = evaluateMove(m, b, depth + 1, alpha, beta);
 			if (player == this.mySide) {
 				// We want to maximize the score
 				bestScore = Math.max(bestScore, r);
-				alpha = Math.max(alpha, bestScore);
-				if (alpha >= beta) break;
+				// alpha = Math.max(alpha, bestScore);
+				// if (alpha >= beta) break;
 			} else {
 				// We want to minimize the score
 				bestScore = Math.min(bestScore, r);
-				beta = Math.min(beta, bestScore);
-				if (beta <= alpha) break;
+				// beta = Math.min(beta, bestScore);
+				// if (beta <= alpha) break;
 			}
 		}
 

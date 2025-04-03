@@ -4,6 +4,7 @@
 package org.example;
 
 import java.util.Random;
+import java.util.Scanner;
 
 public final class App {
 	public String getGreeting() {
@@ -46,6 +47,7 @@ public final class App {
 
 		// Random random = new Random();
 		var ia = new CPUPlayer(link.getPlayer());
+		Scanner scanner = new Scanner(System.in);
 
 		while (true) {
 			Random random = new Random();
@@ -53,6 +55,7 @@ public final class App {
 			var moves = ia.getNextMoveMinMax(link.getBoard(), link.getLastPlay());
 			myPlay = moves.get(random.nextInt(moves.size()));
 			System.out.println("Played " + myPlay);
+			// scanner.nextLine();
 			link.play(myPlay);
 
 			System.out.println(link.getBoard());

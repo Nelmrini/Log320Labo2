@@ -118,40 +118,50 @@ public final class Board {
 	 * @param le point de vue de mark
 	 * @return la valeur de la position sur le plateau pour mark
 	 */
-	// public int evaluate(final Mark mark) {
-	// 	Mark tmp[] = {
-	// 		Mark.EMPTY, Mark.EMPTY, Mark.EMPTY,
-	// 		Mark.EMPTY, Mark.EMPTY, Mark.EMPTY,
-	// 		Mark.EMPTY, Mark.EMPTY, Mark.EMPTY
-	// 	};
-	// 	for (int i = 0; i < 3; i++) {
-	// 		for (int j = 0; j < 3; j++) {
-	// 			var done = isSubBoardDone(new Move(i*3, j*3));
-	// 			tmp[j * 3 + i] = done;
-	// 		}
-	// 	}
-	//
-	// 	int score = 0;
-	// 	for (int i = 0; i < 3; i++) {
-	// 		for (int j = 0; j < 3; j++) {
-	// 			var cs = tmp[j * 3 + i];
-	// 			if (cs == mark) {
-	// 				score += 20;
-	// 				if (i == 1) score += 10;
-	// 				if (j == 1) score += 10;
-	// 			}
-	// 			if (cs == mark.other()) {
-	// 				score -= 20;
-	// 				if (i == 1) score -= 10;
-	// 				if (j == 1) score -= 10;
-	// 			}
-	// 		}
-	// 	}
-	// 	if (score > 100) return 100;
-	// 	if (score < -100) return -100;
-	// 	return score;
-	// };
 	public int evaluate(final Mark mark) {
+		int score = 0;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				var m = new Move(i*3, j*3);
+				var sub = new MiniBoard(this, m);
+				var factor = 1;
+				// the center is good
+				if (i == 1 && j == 1) {
+					factor = 4;
+				// diag are good
+				} else if (i == 0 && j == 0) {
+					factor = 3;
+				} else if (i == 2 && j == 2) {
+					factor = 3;
+				} else if (i == 0 && j == 2) {
+					factor = 3;
+				} else if (i == 2 && j == 0) {
+					factor = 3;
+				}
+
+				var h = sub.heuristic(mark) * factor;
+				if (h > 0) {
+					score += h;
+				} else {
+					score += h*2;
+				}
+			}
+		}
+
+		var all = new MiniBoard(this);
+		score += all.heuristic(mark) * 5;
+
+		// if (score >= 100) {
+		// 	return 99;
+		// } else if (score <= -100) {
+		// 	return -99;
+		// } else {
+		// 	return score;
+		// }
+		return score;
+	};
+
+	private void computeResultBoard(final Mark mark) {
 		resultboard = new Mark[3][3];
 
 		for(int i = 0; i<3; i++){
@@ -187,46 +197,10 @@ public final class Board {
 			}
 
 		}
-
-		for (int i = 0; i < 3; i++) {
-			if (resultboard[i][0] == resultboard[i][1] && resultboard[i][1] == resultboard[i][2] && resultboard[i][0] != Mark.EMPTY) {
-				return (resultboard[i][0] == mark) ? 100 : -100;
-			}
-		}
-
-		for (int j = 0; j < 3; j++) {
-			if (resultboard[0][j] == resultboard[1][j] && resultboard[1][j] == resultboard[2][j] && resultboard[0][j] != Mark.EMPTY) {
-				return (resultboard[0][j] == mark) ? 100 : -100;
-			}
-		}
-
-		if (resultboard[0][0] == resultboard[1][1] && resultboard[1][1] == resultboard[2][2] && resultboard[0][0] != Mark.EMPTY) {
-			return (resultboard[0][0] == mark) ? 100 : -100;
-		}
-
-		if (resultboard[0][2] == resultboard[1][1] && resultboard[1][1] == resultboard[2][0] && resultboard[0][2] != Mark.EMPTY) {
-			return (resultboard[0][2] == mark) ? 100 : -100;
-		}
-
-		for (int j = 0; j < 3; j++) {
-			if (resultboard[0][j] == resultboard[1][j] && resultboard[1][j] == resultboard[2][j] && resultboard[0][j] != Mark.EMPTY) {
-				return (resultboard[0][j] == mark) ? 100 : -100;
-			}
-		}
-
-		if (resultboard[0][0] == resultboard[1][1] && resultboard[1][1] == resultboard[2][2] && resultboard[0][0] != Mark.EMPTY) {
-			return (resultboard[0][0] == mark) ? 100 : -100;
-		}
-
-		if (resultboard[0][2] == resultboard[1][1] && resultboard[1][1] == resultboard[2][0] && resultboard[0][2] != Mark.EMPTY) {
-			return (resultboard[0][2] == mark) ? 100 : -100;
-		}
-
-		return 0;
-		//throw new UnsupportedOperationException();
 	}
 
 	public int evaluateHeuristicCustom(Mark mark) {
+		computeResultBoard(mark);
 		int totalScore = 0;
 		Mark opponent = mark.other();
 	
@@ -409,7 +383,7 @@ public final class Board {
 	 * @return Mark.X if X won, Mark.O if O won, Mark.TIE if tie
 	 * Mark.EMPTY if the game is still going
 	 */
-	private Mark isSubBoardDone(final Move move) {
+	protected Mark isSubBoardDone(final Move move) {
 		int row = move.getRow() / 3;
 		int col = move.getCol() / 3;
 
@@ -555,5 +529,9 @@ public final class Board {
 	public static Move strToMov(final String str) {
 		var tmp = strToInd(str);
 		return new Move(tmp[0], tmp[1]);
+	}
+
+	public Mark getMark(final Move c) {
+		return board[c.getRow()][c.getCol()];
 	}
 }
