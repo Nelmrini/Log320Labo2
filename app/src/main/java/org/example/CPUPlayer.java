@@ -28,7 +28,7 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final int MAX_DEPTH = 8;
+	private final int MAX_DEPTH = 7;
 
 	private ExecutorService executor;
 
@@ -90,9 +90,9 @@ public final class CPUPlayer {
 		}).collect(Collectors.toList());
 
 		//return only the moves that have the same score
-		System.out.println("All moves: " + results);
+		// System.out.println("All moves: " + results);
 		results.sort(Comparator.comparing(t -> ((Tuple<Move,Integer>) t).second()).reversed());
-		System.out.println("Sorted moves: " + results);
+		// System.out.println("Sorted moves: " + results);
 		List<Move> bestMoves = new ArrayList<>();
 		int bestScore = 101;
 		for (Tuple<Move, Integer> t : results) {
@@ -105,22 +105,7 @@ public final class CPUPlayer {
 				break;
 			}
 		}
-
-		bestScore = Integer.MIN_VALUE;
-		Move best=bestMoves.getFirst();
-		
-		for(Move move: bestMoves){
-			board.play(move, mySide);
-			board.evaluate(mySide);
-			int score = board.evaluateHeuristicCustom(mySide);
-			board.undo(move);
-			if(score>bestScore){
-				bestScore=score;
-				best=move;
-			}
-		}
-		bestMoves.clear();
-		bestMoves.add(best);
+		System.out.println("Best moves: " + bestMoves);
 
 		return bestMoves;
 
@@ -139,22 +124,20 @@ public final class CPUPlayer {
 	private Integer evaluateMove(final Move move, final Board board, final int depth, int alpha, int beta) {
 		Board b = board.immutablePlay(move, this.mySide);
 		Mark player = (depth % 2 == 0)?mySide:mySide.other();
-		// Mark done = b.isBoardDone();
-		//
-		// if (done == Mark.TIE) {
-		// 	return 0;
-		// } else if (done == player) {
-		// 	return 100;
-		// } else if (done == player.other()) {
-		// 	return -100;
-		// }
+		Mark done = b.isBoardDone();
+
+		if (done == Mark.TIE) {
+			return 0;
+		} else if (done == player) {
+			return 100;
+		} else if (done == player.other()) {
+			return -100;
+		}
 
 		if (depth == MAX_DEPTH) {
 			b.evaluate(player);
-			int score = b.evaluateHeuristicCustom(player);
-			// if (Math.abs(score) != 100) {
-			// 	System.out.println("Score is " + score);
-			// }
+			int score = b.evaluateHeuristicCustom(mySide);
+			// System.out.println("Score is " + score);
 			return score;
 		}
 

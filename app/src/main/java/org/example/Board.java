@@ -245,8 +245,13 @@ public final class Board {
 		totalScore += evaluateGlobalBoard(mark, opponent);
 
 		totalScore = (int)(((double) totalScore / 3000) * 100);
-		
-		return totalScore;
+		if (totalScore >= 100) {
+			return 99;
+		} else if (totalScore <= -100) {
+			return -99;
+		} else {
+			return totalScore;
+		}
 	}
 	
 	private int evaluateSubBoard(int baseRow, int baseCol, Mark mark, Mark opponent) {

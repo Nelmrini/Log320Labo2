@@ -48,13 +48,10 @@ public final class App {
 		var ia = new CPUPlayer(link.getPlayer());
 
 		while (true) {
-			// var moves = link.getBoard().getPossibleMoves(
-			// 		link.getLastPlay()
-			// 		);
-			//var m = moves.get(random.nextInt(moves.size()));
+			Random random = new Random();
 			Move myPlay;
 			var moves = ia.getNextMoveMinMax(link.getBoard(), link.getLastPlay());
-			myPlay = moves.getLast();
+			myPlay = moves.get(random.nextInt(moves.size()));
 			System.out.println("Played " + myPlay);
 			link.play(myPlay);
 
