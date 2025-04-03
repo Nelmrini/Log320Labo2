@@ -1,11 +1,13 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 // IMPORTANT: Il ne faut pas changer la signature des méthodes
 // de cette classe, ni le nom de la classe.
@@ -77,28 +79,35 @@ public final class CPUPlayer {
 		));
 		}
 
-		int bestScore = Integer.MIN_VALUE;
-		var bestMove = new ArrayList<Move>();
-
-		// dispatch the tree expansion to the workers
-		try {
-			for (Future<Tuple<Move, Integer>> f : futures) {
-				if (f.get().second() > bestScore) {
-					bestScore = f.get().second();
-					bestMove.clear();
-					bestMove.add(f.get().first());
-				} else if (f.get().second() == bestScore) {
-					bestScore = f.get().second();
-					bestMove.add(f.get().first());
-				}
+		var results = futures.stream().map(t -> {
+			try {
+				return t.get();
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (InterruptedException | ExecutionException e) { e.printStackTrace(); }
-		System.out.println(bestMove.size());
+		}).collect(Collectors.toList());
+
+		//return only the moves that have the same score
+		results.sort(Comparator.comparing(t -> ((Tuple<Move,Integer>) t).second()).reversed());
+		List<Move> bestMoves = new ArrayList<>();
+		int bestScore = 101;
+		for (Tuple<Move, Integer> t : results) {
+			if (bestScore == 101) {
+				bestScore = t.second();
+				bestMoves.add(t.first());
+			} else if (t.second() == bestScore) {
+				bestMoves.add(t.first());
+			} else {
+				break;
+			}
+		}
 
 		bestScore = Integer.MIN_VALUE;
-		Move best=bestMove.getFirst();
-		System.out.println(bestMove.toString());
-		for(Move move: bestMove){
+		Move best=bestMoves.getFirst();
+		
+		System.out.println(bestMoves.toString());
+		for(Move move: bestMoves){
 			board.play(move, mySide);
 			board.evaluate(mySide);
 			int score = board.evaluateHeuristicCustom(mySide);
@@ -108,10 +117,10 @@ public final class CPUPlayer {
 				best=move;
 			}
 		}
-		bestMove.clear();
-		bestMove.add(best);
+		bestMoves.clear();
+		bestMoves.add(best);
 
-		return bestMove;
+		return bestMoves;
 
 		//return bestMove;
 	}
