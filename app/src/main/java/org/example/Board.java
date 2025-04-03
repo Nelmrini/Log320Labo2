@@ -243,6 +243,8 @@ public final class Board {
 		}
 	
 		totalScore += evaluateGlobalBoard(mark, opponent);
+
+		totalScore = (int)(((double) totalScore / 3000) * 100);
 		
 		return totalScore;
 	}

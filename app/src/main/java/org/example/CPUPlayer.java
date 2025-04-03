@@ -28,7 +28,7 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final int MAX_DEPTH =6;
+	private final int MAX_DEPTH = 8;
 
 	private ExecutorService executor;
 
@@ -86,10 +86,13 @@ public final class CPUPlayer {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			return null;
 		}).collect(Collectors.toList());
 
 		//return only the moves that have the same score
+		System.out.println("All moves: " + results);
 		results.sort(Comparator.comparing(t -> ((Tuple<Move,Integer>) t).second()).reversed());
+		System.out.println("Sorted moves: " + results);
 		List<Move> bestMoves = new ArrayList<>();
 		int bestScore = 101;
 		for (Tuple<Move, Integer> t : results) {
@@ -106,7 +109,6 @@ public final class CPUPlayer {
 		bestScore = Integer.MIN_VALUE;
 		Move best=bestMoves.getFirst();
 		
-		System.out.println(bestMoves.toString());
 		for(Move move: bestMoves){
 			board.play(move, mySide);
 			board.evaluate(mySide);
@@ -137,25 +139,23 @@ public final class CPUPlayer {
 	private Integer evaluateMove(final Move move, final Board board, final int depth, int alpha, int beta) {
 		Board b = board.immutablePlay(move, this.mySide);
 		Mark player = (depth % 2 == 0)?mySide:mySide.other();
-		Mark done = b.isBoardDone();
-
-		if (done == Mark.TIE) {
-			return 0;
-		} else if (done == player) {
-			return 100;
-		} else if (done == player.other()) {
-			return -100;
-		}
+		// Mark done = b.isBoardDone();
+		//
+		// if (done == Mark.TIE) {
+		// 	return 0;
+		// } else if (done == player) {
+		// 	return 100;
+		// } else if (done == player.other()) {
+		// 	return -100;
+		// }
 
 		if (depth == MAX_DEPTH) {
-			int score = b.evaluate(player);
-			//System.out.println("here");
-			if(score!=0){
-				score*=10;
-				return score;
-			} 
-			return b.evaluateHeuristicCustom(mySide);
-			
+			b.evaluate(player);
+			int score = b.evaluateHeuristicCustom(player);
+			// if (Math.abs(score) != 100) {
+			// 	System.out.println("Score is " + score);
+			// }
+			return score;
 		}
 
 		List<Move> possibleMoves = b.getPossibleMoves(move);
@@ -167,13 +167,13 @@ public final class CPUPlayer {
 			if (player == this.mySide) {
 				// We want to maximize the score
 				bestScore = Math.max(bestScore, r);
-				// alpha = Math.max(alpha, bestScore);
-				// if (alpha >= beta) break;
+				alpha = Math.max(alpha, bestScore);
+				if (alpha >= beta) break;
 			} else {
 				// We want to minimize the score
 				bestScore = Math.min(bestScore, r);
-				// beta = Math.min(beta, bestScore);
-				// if (beta <= alpha) break;
+				beta = Math.min(beta, bestScore);
+				if (beta <= alpha) break;
 			}
 		}
 
