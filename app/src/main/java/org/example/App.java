@@ -3,8 +3,6 @@
  */
 package org.example;
 
-import java.util.Random;
-
 public final class App {
 	public String getGreeting() {
 		return "Hello World!";

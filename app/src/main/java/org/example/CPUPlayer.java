@@ -49,6 +49,8 @@ public final class CPUPlayer {
 		ArrayList<Move> meilleurMoves = new ArrayList<>();
 		int highscore = Integer.MIN_VALUE;
 		for (Move move: board.getPossibleMoves(lastMove)) {
+			//board.evaluate(mySide);
+			//System.out.println("Move: "+move.toString()+" Value: "+board.evaluateHeuristic(move, mySide));
 			board.play(move, this.mySide);
 			numExploredNodes++;
 			//this.turn=board.flip(turn);
@@ -65,6 +67,21 @@ public final class CPUPlayer {
 			}
 
 		}
+		highscore = Integer.MIN_VALUE;
+		Move bestMove=meilleurMoves.getFirst();
+		System.out.println(meilleurMoves.toString());
+		for(Move move: meilleurMoves){
+			board.play(move, mySide);
+			board.evaluate(mySide);
+			int score = board.evaluateHeuristicCustom(mySide, move);
+			board.undo(move);
+			if(score>highscore){
+				highscore=score;
+				bestMove=move;
+			}
+		}
+		meilleurMoves.clear();
+		meilleurMoves.add(bestMove);
 
 		return meilleurMoves;
 	}
@@ -73,18 +90,20 @@ public final class CPUPlayer {
 			final Mark turn, final Move lastMove) {
 		int score = board.evaluate(mySide);
 		if (score == 100 || score == -100) {
+			score*=100 ;
 			//||board.isFull() pas oublier de ajouter le .isFull()
 			return score;
 		}
 		if (profondeur == 0) {
-			 
+			/*
 			if(mySide==Mark.X){
 				return board.evaluateHeuristic(lastMove, mySide)-board.evaluateHeuristic(lastMove, Mark.O);
 			} else {
 				return board.evaluateHeuristic(lastMove, mySide)-board.evaluateHeuristic(lastMove, Mark.X);
 			}
-				
-				//return (turn == mySide) ? board.evaluateHeuristic(lastMove, mySide) : -board.evaluateHeuristic(lastMove, mySide);
+			*/
+			
+			return board.evaluateHeuristicCustom(mySide, lastMove);
 		}
 
 		if (mySide == turn) {
@@ -93,6 +112,7 @@ public final class CPUPlayer {
 				board.play(move, turn);
 				this.numExploredNodes++;
 				score = minMax(board, profondeur - 1, board.flip(turn), move);
+				//System.out.println("Profondeur: " + profondeur + " MAX ");
 				board.undo(move);
 				if (score > highscore) {
 					highscore = score;
