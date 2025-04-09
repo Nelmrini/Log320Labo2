@@ -1,6 +1,11 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 // IMPORTANT: Il ne faut pas changer la signature des méthodes
 // de cette classe, ni le nom de la classe.
@@ -21,12 +26,24 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final int MAX_DEPTH = 4;
+	private final int MAX_DEPTH = 6;
 
-	// Le constructeur reçoit en paramètre le
-	// joueur MAX (X ou O)
+	private ExecutorService executor;
+
+	/**
+	 * Initialise le joueur CPU.
+	 * De plus initialize l'executor pour le multithreading
+	 * @param cpu Le joueur dont on cherche a maximizer le score
+	 */
 	public CPUPlayer(final Mark cpu) {
 		this.mySide = cpu;
+		int cores = Runtime.getRuntime().availableProcessors();
+		System.out.println("This system has " + cores + " cores");
+		this.executor = Executors.newFixedThreadPool(cores); // who even runs less than a dual core?
+	}
+
+	public void shutdownExecutor() {
+		this.executor.shutdown();
 	}
 
 	// Ne pas changer cette méthode
@@ -42,48 +59,44 @@ public final class CPUPlayer {
 	 * @param lastMove The last move played by the opponent.
 	 * @return the best play possible
 	 */
-	public ArrayList<Move> getNextMoveMinMax(
+	public List<Move> getNextMoveMinMax(
 			final Board board,
 			final Move lastMove) {
-		numExploredNodes = 0;
-		ArrayList<Move> meilleurMoves = new ArrayList<>();
-		int highscore = Integer.MIN_VALUE;
-		for (Move move: board.getPossibleMoves(lastMove)) {
-			//board.evaluate(mySide);
-			//System.out.println("Move: "+move.toString()+" Value: "+board.evaluateHeuristic(move, mySide));
-			board.play(move, this.mySide);
-			numExploredNodes++;
-			//this.turn=board.flip(turn);
-			int score = minMax(board, MAX_DEPTH, board.flip(mySide), move);
-			//this.turn=board.flip(turn);
-			board.undo(move);
 
-			if (score > highscore) {
-				highscore = score;
-				meilleurMoves.clear();
-				meilleurMoves.add(move);
-			} else if (highscore == score) {
-				meilleurMoves.add(move);
+		var possiblesModes = board.getPossibleMoves(lastMove);
+
+		var sortedMoves = ForkJoinPool.commonPool().submit(() ->
+			possiblesModes
+				.stream()
+				.parallel()
+				.map(move -> new Tuple<>(move, minMax(board, MAX_DEPTH, mySide.other(), move)))
+				.sorted(Comparator.comparingInt(Tuple::second))
+				.toList()
+		).join();
+
+		Integer highscore = null;
+		List<Move> bestMoves = new ArrayList<Move>();
+		for (var t : sortedMoves.reversed()) {
+			if (highscore == null) {
+				highscore = t.second();
 			}
-
-		}
-		highscore = Integer.MIN_VALUE;
-		Move bestMove=meilleurMoves.getFirst();
-		System.out.println(meilleurMoves.toString());
-		for(Move move: meilleurMoves){
-			board.play(move, mySide);
-			board.evaluate(mySide);
-			int score = board.evaluateHeuristicCustom(mySide, move);
-			board.undo(move);
-			if(score>highscore){
-				highscore=score;
-				bestMove=move;
+			if (highscore == t.second()) {
+				bestMoves.add(t.first());
 			}
 		}
-		meilleurMoves.clear();
-		meilleurMoves.add(bestMove);
+		System.out.println(bestMoves);
+		// At this point bestMoves contains the best moves According to MinMax
 
-		return meilleurMoves;
+		// Now we sort the moves according to evaluator function
+		bestMoves = bestMoves.stream()
+			.sorted(Comparator.comparingInt(m -> board.evaluateHeuristicCustom(mySide, m)))
+			.toList();
+		
+		System.out.println(bestMoves);
+		System.out.println("Best Move is " + bestMoves.getLast());
+
+		// And we select the best one
+		return List.of(bestMoves.getLast());
 	}
 
 	public int minMax(final Board board, final int profondeur,
