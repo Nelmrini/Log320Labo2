@@ -31,7 +31,12 @@ public final class Board {
 	}
 
 	public Board(final Board previous) {
-		this.board = previous.board.clone();
+		this.board = new Mark[9][9];
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				this.board[i][j] = previous.board[i][j];
+			}
+		}
 	}
 
 	// Place la pièce 'mark' sur le plateau, à la
@@ -40,6 +45,12 @@ public final class Board {
 	// Ne pas changer la signature de cette méthode
 	public void play(final Move m, final Mark mark) {
 		board[m.getRow()][m.getCol()] = mark;
+	}
+
+	public Board immutablePlay(final Move m, final Mark mark) {
+		var b = new Board(this);
+		b.play(m, mark);
+		return b;
 	}
 
 	public void undo(final Move m) {
@@ -152,6 +163,7 @@ public final class Board {
 	}
 
 	public int evaluateHeuristicCustom(Mark mark, Move move) {
+		this.evaluate(mark);
 		int totalScore = 0;
 		Mark opponent = mark.other();
 		
