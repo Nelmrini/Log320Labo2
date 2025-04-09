@@ -26,7 +26,7 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final int MAX_DEPTH = 6;
+	private final int MAX_DEPTH = 5;
 
 	private ExecutorService executor;
 
@@ -69,7 +69,17 @@ public final class CPUPlayer {
 			possiblesModes
 				.stream()
 				.parallel()
-				.map(move -> new Tuple<>(move, minMax(board, MAX_DEPTH, mySide.other(), move)))
+				.map(move -> {
+					// this b is a new Board, no race condition should occur
+					var b = board.immutablePlay(move, mySide);
+					var score = minMax(
+							b,
+							MAX_DEPTH,
+							mySide.other(),
+							move
+							);
+					return new Tuple<>(move, score);
+				})
 				.sorted(Comparator.comparingInt(Tuple::second))
 				.toList()
 		).join();
@@ -108,13 +118,6 @@ public final class CPUPlayer {
 			return score;
 		}
 		if (profondeur == 0) {
-			/*
-			if(mySide==Mark.X){
-				return board.evaluateHeuristic(lastMove, mySide)-board.evaluateHeuristic(lastMove, Mark.O);
-			} else {
-				return board.evaluateHeuristic(lastMove, mySide)-board.evaluateHeuristic(lastMove, Mark.X);
-			}
-			*/
 			
 			return board.evaluateHeuristicCustom(mySide, lastMove);
 		}
