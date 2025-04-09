@@ -1,10 +1,10 @@
 package org.example;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
 // IMPORTANT: Il ne faut pas changer la signature des méthodes
@@ -26,9 +26,9 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final int MAX_DEPTH = 5;
-
-	private ExecutorService executor;
+	private final int MAX_DEPTH = Integer.MAX_VALUE;
+	private final long MAX_TIME_MILLI = 3000 - 15;
+	private Instant IA_STARTED;
 
 	/**
 	 * Initialise le joueur CPU.
@@ -37,13 +37,6 @@ public final class CPUPlayer {
 	 */
 	public CPUPlayer(final Mark cpu) {
 		this.mySide = cpu;
-		int cores = Runtime.getRuntime().availableProcessors();
-		System.out.println("This system has " + cores + " cores");
-		this.executor = Executors.newFixedThreadPool(cores); // who even runs less than a dual core?
-	}
-
-	public void shutdownExecutor() {
-		this.executor.shutdown();
 	}
 
 	// Ne pas changer cette méthode
@@ -63,6 +56,8 @@ public final class CPUPlayer {
 			final Board board,
 			final Move lastMove) {
 
+		IA_STARTED = Instant.now();
+
 		var possiblesModes = board.getPossibleMoves(lastMove);
 
 		var sortedMoves = ForkJoinPool.commonPool().submit(() ->
@@ -72,7 +67,7 @@ public final class CPUPlayer {
 				.map(move -> {
 					// this b is a new Board, no race condition should occur
 					var b = board.immutablePlay(move, mySide);
-					var score = minMax(
+					var score = minMaxMulti(
 							b,
 							MAX_DEPTH,
 							mySide.other(),
@@ -94,7 +89,6 @@ public final class CPUPlayer {
 				bestMoves.add(t.first());
 			}
 		}
-		System.out.println(bestMoves);
 		// At this point bestMoves contains the best moves According to MinMax
 
 		// Now we sort the moves according to evaluator function
@@ -102,11 +96,59 @@ public final class CPUPlayer {
 			.sorted(Comparator.comparingInt(m -> board.evaluateHeuristicCustom(mySide, m)))
 			.toList();
 		
-		System.out.println(bestMoves);
-		System.out.println("Best Move is " + bestMoves.getLast());
 
 		// And we select the best one
+
+		System.out.printf("We had %d ms left\n", 3000 - (Duration.between(IA_STARTED, Instant.now()).toMillis()));
+
 		return List.of(bestMoves.getLast());
+	}
+
+	public Integer minMaxMulti(final Board board, final int profondeur,
+			final Mark turn, final Move lastMove) {
+
+		// time cutoff
+		if (Duration.between(IA_STARTED, Instant.now()).toMillis() > MAX_TIME_MILLI) {
+			return board.evaluateHeuristicCustom(mySide, lastMove);
+		}
+		
+		// win/loss cutoff
+		var score = board.evaluate(mySide);
+		if (Math.abs(score) == 100) return score*100;
+
+		// depth cutoff
+		if (profondeur == 0) return board.evaluateHeuristicCustom(mySide, lastMove);
+
+		var possibleMoves = board.getPossibleMoves(lastMove);
+
+		// this shouldn't happen but here we are
+		if (possibleMoves.isEmpty()) {
+			return board.evaluateHeuristicCustom(mySide, lastMove);
+		}
+
+		var sortedScores = ForkJoinPool.commonPool().submit(() ->
+			possibleMoves
+				.stream()
+				.parallel()
+				.map(move -> {
+					// this b is a new Board, no race condition should occur
+					var b = board.immutablePlay(move, turn);
+					return minMaxMulti(
+							b,
+							profondeur - 1,
+							turn.other(),
+							move
+							);
+				})
+				.sorted()
+				.toList()
+		).join();
+
+		if (turn != mySide) {
+			return sortedScores.getFirst();
+		} else {
+			return sortedScores.getLast();
+		}
 	}
 
 	public int minMax(final Board board, final int profondeur,
