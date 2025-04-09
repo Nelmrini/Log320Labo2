@@ -109,6 +109,7 @@ public final class CPUPlayer {
 		return List.of(bestMoves.getLast());
 	}
 
+
 	public int minMax(final Board board, final int profondeur,
 			final Mark turn, final Move lastMove) {
 		int score = board.evaluate(mySide);
@@ -117,8 +118,8 @@ public final class CPUPlayer {
 			//||board.isFull() pas oublier de ajouter le .isFull()
 			return score;
 		}
+
 		if (profondeur == 0) {
-			
 			return board.evaluateHeuristicCustom(mySide, lastMove);
 		}
 
@@ -198,6 +199,10 @@ public final class CPUPlayer {
 			//||board.isFull() pas oublier de ajouter le .isFull()
 			return score;
 		}
+		
+		if (profondeur == 0) {
+			return board.evaluateHeuristicCustom(mySide, lastMove);
+		}
 
 		if (mySide == turn) {
 			int highscore = Integer.MIN_VALUE;
@@ -205,7 +210,7 @@ public final class CPUPlayer {
 				board.play(move, turn);
 				this.numExploredNodes++;
 				// this.turn=board.flip(turn);
-				score = elagageAB(board, profondeur + 1, alpha, beta,
+				score = elagageAB(board, profondeur - 1, alpha, beta,
 						board.flip(turn), move);
 				// this.turn=board.flip(turn);
 				board.undo(move);
@@ -223,7 +228,7 @@ public final class CPUPlayer {
 				board.play(move, turn);
 				this.numExploredNodes++;
 				//this.turn=board.flip(turn);
-				score = elagageAB(board, profondeur + 1, alpha, beta,
+				score = elagageAB(board, profondeur - 1, alpha, beta,
 						board.flip(turn), move);
 				//this.turn=board.flip(turn);
 				board.undo(move);
