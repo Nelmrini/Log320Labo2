@@ -19,5 +19,14 @@ public enum Mark {
 			case EMPTY -> EMPTY;
 		};
 	}
+
+	@Override
+	public String toString() {
+		return switch (this) {
+			case X -> "❌";
+			case O -> "🔵";
+			case EMPTY -> "NA";
+		};
+	}
 }
 

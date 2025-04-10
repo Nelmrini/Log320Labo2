@@ -2,6 +2,7 @@ package org.example;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -197,5 +198,133 @@ public class BoardTest {
 			.map(s -> Board.strToMov(s))
 			.collect(Collectors.toSet());
 		assertEquals(expected, moves);
+	}
+
+	@Test
+	public void possibleMoves2() {
+		// A9
+		var lastMove = Board.strToMov("A9");
+		var lastPlayer = Mark.X;
+		//   ┌──────┬──────┬──────┐
+		// 9 │❌🔵❌│    🔵│🔵❌❌│
+		// 8 │❌❌🔵│    🔵│❌🔵🔵│
+		// 7 │🔵❌🔵│    🔵│🔵🔵❌│
+		//   ├──────┼──────┼──────┤
+		// 6 │  🔵🔵│❌❌🔵│  ❌❌│
+		// 5 │❌🔵❌│🔵🔵❌│  ❌🔵│
+		// 4 │❌🔵🔵│❌❌🔵│  ❌❌│
+		//   ├──────┼──────┼──────┤
+		// 3 │    ❌│❌❌❌│  ❌🔵│
+		// 2 │    ❌│❌❌🔵│  🔵🔵│
+		// 1 │🔵🔵❌│🔵🔵❌│🔵🔵❌│
+		//   └──────┴──────┴──────┘
+		//    A B C  D E F  G H I
+		var b = new Board();
+		b.play(Board.strToMov("A1"), Mark.O);
+		b.play(Board.strToMov("B1"), Mark.O);
+		b.play(Board.strToMov("C1"), Mark.X);
+		b.play(Board.strToMov("C2"), Mark.X);
+		b.play(Board.strToMov("C3"), Mark.X);
+
+		b.play(Board.strToMov("D1"), Mark.O);
+		b.play(Board.strToMov("E1"), Mark.O);
+		b.play(Board.strToMov("F1"), Mark.X);
+		b.play(Board.strToMov("D2"), Mark.X);
+		b.play(Board.strToMov("E2"), Mark.X);
+		b.play(Board.strToMov("F2"), Mark.O);
+		b.play(Board.strToMov("D3"), Mark.X);
+		b.play(Board.strToMov("E3"), Mark.X);
+		b.play(Board.strToMov("F3"), Mark.X);
+
+		b.play(Board.strToMov("G1"), Mark.O);
+		b.play(Board.strToMov("H1"), Mark.O);
+		b.play(Board.strToMov("I1"), Mark.X);
+		b.play(Board.strToMov("H2"), Mark.O);
+		b.play(Board.strToMov("I2"), Mark.O);
+		b.play(Board.strToMov("H3"), Mark.X);
+		b.play(Board.strToMov("I3"), Mark.O);
+
+		b.play(Board.strToMov("A4"), Mark.X);
+		b.play(Board.strToMov("B4"), Mark.O);
+		b.play(Board.strToMov("C4"), Mark.O);
+		b.play(Board.strToMov("A5"), Mark.X);
+		b.play(Board.strToMov("B5"), Mark.O);
+		b.play(Board.strToMov("C5"), Mark.X);
+		// b.play(Board.strToMov("A6"), Mark.X);
+		b.play(Board.strToMov("B6"), Mark.O);
+		b.play(Board.strToMov("C6"), Mark.O);
+
+		b.play(Board.strToMov("D4"), Mark.X);
+		b.play(Board.strToMov("E4"), Mark.X);
+		b.play(Board.strToMov("F4"), Mark.O);
+		b.play(Board.strToMov("D5"), Mark.O);
+		b.play(Board.strToMov("E5"), Mark.O);
+		b.play(Board.strToMov("F5"), Mark.X);
+		b.play(Board.strToMov("D6"), Mark.X);
+		b.play(Board.strToMov("E6"), Mark.X);
+		b.play(Board.strToMov("F6"), Mark.O);
+
+		// b.play(Board.strToMov("G4"), Mark.X);
+		b.play(Board.strToMov("H4"), Mark.X);
+		b.play(Board.strToMov("I4"), Mark.X);
+		// b.play(Board.strToMov("G5"), Mark.O);
+		b.play(Board.strToMov("H5"), Mark.X);
+		b.play(Board.strToMov("I5"), Mark.O);
+		// b.play(Board.strToMov("G6"), Mark.X);
+		b.play(Board.strToMov("H6"), Mark.X);
+		b.play(Board.strToMov("I6"), Mark.X);
+
+		b.play(Board.strToMov("A7"), Mark.O);
+		b.play(Board.strToMov("B7"), Mark.X);
+		b.play(Board.strToMov("C7"), Mark.O);
+		b.play(Board.strToMov("A8"), Mark.X);
+		b.play(Board.strToMov("B8"), Mark.X);
+		b.play(Board.strToMov("C8"), Mark.O);
+		b.play(Board.strToMov("A9"), Mark.X);
+		b.play(Board.strToMov("B9"), Mark.O);
+		b.play(Board.strToMov("C9"), Mark.X);
+
+		// b.play(Board.strToMov("D7"), Mark.O);
+		// b.play(Board.strToMov("E7"), Mark.X);
+		b.play(Board.strToMov("F7"), Mark.O);
+		// b.play(Board.strToMov("D8"), Mark.X);
+		// b.play(Board.strToMov("E8"), Mark.X);
+		b.play(Board.strToMov("F8"), Mark.O);
+		// b.play(Board.strToMov("D9"), Mark.X);
+		// b.play(Board.strToMov("E9"), Mark.O);
+		b.play(Board.strToMov("F9"), Mark.O);
+
+		b.play(Board.strToMov("G7"), Mark.O);
+		b.play(Board.strToMov("H7"), Mark.O);
+		b.play(Board.strToMov("I7"), Mark.X);
+		b.play(Board.strToMov("G8"), Mark.X);
+		b.play(Board.strToMov("H8"), Mark.O);
+		b.play(Board.strToMov("I8"), Mark.O);
+		b.play(Board.strToMov("G9"), Mark.O);
+		b.play(Board.strToMov("H9"), Mark.X);
+		b.play(Board.strToMov("I9"), Mark.X);
+
+		var result = b.getPossibleMoves(lastMove);
+
+		assertTrue(result.size() == 0);
+
+	}
+
+	@Test
+	public void evaluatorTest() {
+		var b = new Board();
+		b.play(Board.strToMov("A2"), Mark.O);
+		b.play(Board.strToMov("B2"), Mark.O);
+		b.play(Board.strToMov("C2"), Mark.O);
+		b.play(Board.strToMov("G8"), Mark.X);
+		b.play(Board.strToMov("H8"), Mark.X);
+		b.play(Board.strToMov("I8"), Mark.X);
+		System.out.println(b);
+
+		var score = b.evaluateHeuristicCustom(Mark.X, Board.strToMov("I8"));
+		System.out.println(score);
+
+
+		assertTrue(false);
 	}
 }
