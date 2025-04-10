@@ -57,27 +57,36 @@ public final class Board {
 		board[m.getRow()][m.getCol()] = Mark.EMPTY;
 	}
 
+	/**
+	 * Pretty print of the board
+	 */
 	@Override
 	public String toString() {
 		final var empty =  "  ";
 		final var cross =  "❌";
 		final var circle = "🔵";
+		final String top = "┌──────┬──────┬──────┐\n";
+		final String mid = "├──────┼──────┼──────┤\n";
+		final String bot = "└──────┴──────┴──────┘\n";
 
 		final StringBuilder sb = new StringBuilder();
+
+		sb.append(top);
 		for (int i = 0; i < 9; i++) {
-			if (i % 3 == 0) sb.append("|------|------|------|\n");
+			sb.append("│");
 			for (int j = 0; j < 9; j++) {
-				if (j % 3 == 0) sb.append("|");
-				sb.append(
-						switch (board[j][i]) {
-							case EMPTY -> empty;
-							case X -> cross;
-							case O -> circle;
-						});
+				sb.append(switch (board[j][i]) {
+					case EMPTY -> empty;
+					case X -> cross;
+					case O -> circle;
+				});
+				if (j % 3 == 2) sb.append("│");
 			}
-			sb.append("|\n");
+			sb.append("\n");
+			if (i == 8) break;
+			if (i % 3 == 2) sb.append(mid);
 		}
-		sb.append("|------|------|------|\n");
+		sb.append(bot);
 
 		return sb.toString();
 	}
