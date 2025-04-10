@@ -9,6 +9,18 @@ public final class App {
 	}
 
 	public static void main(final String[] args) {
+		Link link;
+		if (args.length == 2) {
+			var address = args[0];
+			var port = Integer.parseInt(args[1]);
+			link = Link.getInstance(address, port);
+		} else if (args.length == 1) {
+			var address = args[0];
+			link = Link.getInstance(address);
+		} else {
+			link = Link.getInstance();
+		}
+
 		// test print board
 		// Board board = new Board();
 		// Scanner input = new Scanner(System.in);
@@ -22,7 +34,6 @@ public final class App {
 		// }
 
 		// test read board from server
-		Link link = Link.getInstance();
 		System.out.println(link.getBoard());
 
 		System.out.println("You are playing " + switch (link.getPlayer()) {
