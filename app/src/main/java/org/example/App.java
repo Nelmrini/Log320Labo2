@@ -9,15 +9,31 @@ public final class App {
 	}
 
 	public static void main(final String[] args) {
+		Link link;
+		if (args.length == 2) {
+			var address = args[0];
+			var port = Integer.parseInt(args[1]);
+			link = Link.getInstance(address, port);
+		} else if (args.length == 1) {
+			var address = args[0];
+			link = Link.getInstance(address);
+		} else {
+			link = Link.getInstance();
+		}
 
-		Board b = new Board();
-		b.play(new Move(0, 0), Mark.X);
-		b.play(new Move(0, 1), Mark.O);
-		b.play(new Move(0, 2), Mark.X);
-		System.out.println(b);
+		// test print board
+		// Board board = new Board();
+		// Scanner input = new Scanner(System.in);
+		// System.out.println(board);
+		// while (input.hasNext()) {
+		//     String str = input.nextLine();
+		//     int[] pos = Board.strToInd(str);
+		//
+		//     board.play(new Move(pos[0], pos[1]), Mark.X);
+		//     System.out.println(board);
+		// }
 
 		// test read board from server
-		Link link = Link.getInstance();
 		System.out.println(link.getBoard());
 
 		System.out.println("You are playing " + switch (link.getPlayer()) {

@@ -21,9 +21,9 @@ public final class Link {
 	/** singleton reference the server. **/
 	private static Link instance = null;
 	/** address of the server. **/
-	private static final String ADDRESS = "localhost";
+	private static String ADDRESS = "localhost";
 	/** port of the server. **/
-	private static final Integer PORT = 8888;
+	private static Integer PORT = 8888;
 
 	/** socket where the connection is done. **/
 	private Socket socket;
@@ -52,6 +52,8 @@ public final class Link {
 			input = new BufferedInputStream(socket.getInputStream());
 			output = new BufferedOutputStream(socket.getOutputStream());
 			board = new Board();
+
+			System.out.printf("Connected to server %s:%d\n", ADDRESS, PORT);
 
 			// check who is the player
 			var cmd = (char) input.read();
@@ -180,6 +182,37 @@ public final class Link {
 	 */
 	public static Link getInstance() {
 		//return (instance == null) ? (instance = new Link()) : instance;
+		if (instance == null) {
+			instance = new Link();
+		}
+		return instance;
+	}
+
+	/**
+	 * Getter that the address and port
+	 * before initializing the connection
+	 * @param the address of the server
+	 * @param the port of the server
+	 * @return a Link to the server
+	 */
+	public static Link getInstance(String address, Integer port) {
+		ADDRESS = address;
+		PORT = port;
+		if (instance == null) {
+			instance = new Link();
+		}
+		return instance;
+	}
+	
+	/**
+	 * Getter that the address
+	 * before initializing the connection
+	 * port is assumed to be the default port
+	 * @param the address of the server
+	 * @return a Link to the server
+	 */
+	public static Link getInstance(String address) {
+		ADDRESS = address;
 		if (instance == null) {
 			instance = new Link();
 		}

@@ -45,6 +45,12 @@ application {
     mainClass = "org.example.App"
 }
 
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "org.example.App"
+    }
+}
+
 // tasks.named<JavaExec>("run") {
 //     standardInput = System.`in`
 // }
