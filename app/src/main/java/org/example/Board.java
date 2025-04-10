@@ -13,14 +13,19 @@ import java.util.List;
 /**
  * This class is responsible for representing the current state of one board.
  * @author Brian Normant
+ * @author Stéfane Maltais
  */
 public final class Board {
 	/** The internal representation of the tic tact toe board. **/
 	private final Mark[][] board;
+	/** Normal sized tictactoe board that have the result of each subboard **/
 	Mark[][] resultboard;
 
 
 	// Ne pas changer la signature de cette méthode
+	/**
+	 * Return new empty board
+	 */
 	public Board() {
 		board = new Mark[9][9];
 		for (int i = 0; i < 9; i++) {
@@ -30,6 +35,10 @@ public final class Board {
 		}
 	}
 
+	/**
+	 * Create a copy of a board
+	 * @param previous the board to copy
+	 */
 	public Board(final Board previous) {
 		this.board = new Mark[9][9];
 		for (int i = 0; i < 9; i++) {
@@ -39,22 +48,31 @@ public final class Board {
 		}
 	}
 
-	// Place la pièce 'mark' sur le plateau, à la
-	// position spécifiée dans Move
-	//
 	// Ne pas changer la signature de cette méthode
+	/**
+	 * Place la pièce 'mark' sur le plateau, à la
+	 * position spécifiée dans Move
+	 * This method SHOULD NOT be used as it modifie this reference to the board
+	 * which create race conditions in others thread
+	 * @param m the position to play
+	 * @param mark whose playing
+	 */
 	public void play(final Move m, final Mark mark) {
 		board[m.getRow()][m.getCol()] = mark;
 	}
 
+	/**
+	 * Place la pièce 'mark' sur le plateau, à la
+	 * position spécifiée dans Move
+	 * This method SHOULD be used instead of play
+	 * @param m the position to play
+	 * @param mark whose playing
+	 * @return a new board with the play
+	 */
 	public Board immutablePlay(final Move m, final Mark mark) {
 		var b = new Board(this);
 		b.play(m, mark);
 		return b;
-	}
-
-	public void undo(final Move m) {
-		board[m.getRow()][m.getCol()] = Mark.EMPTY;
 	}
 
 	@Override

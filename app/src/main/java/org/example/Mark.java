@@ -12,6 +12,10 @@ public enum Mark {
 	/** no one played here. **/
 	EMPTY;
 
+	/**
+	 * flip the mark, from a cross to a circle and vice versa
+	 * @return flipped mark
+	 */
 	public Mark other() {
 		return switch (this) {
 			case X -> O;

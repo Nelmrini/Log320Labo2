@@ -1,29 +1,39 @@
 package org.example;
 
 /**
- * This class describe a positiono on the board.
+ * This class describe a position on the board.
+ * Furthermore, This class is immutable
+ * This helps a lot to avoid unidented modification
  * @author Brian Normant
  */
 public final class Move {
 	/** row of the move on the board. **/
-	private int row;
+	private final int row;
 	/** column of the move on the board. **/
-	private int col;
+	private final int col;
 
-	public Move() {
-		row = -1;
-		col = -1;
-	}
-
+	/**
+	 * Create a move on the board
+	 * @param r the row, 0 is top, 8 is bottom
+	 * @param c the column, 0 is A, 8 is I
+	 */
 	public Move(final int r, final int c) {
 		row = r;
 		col = c;
 	}
 
+	/**
+	 * Get the row of the move on the board
+	 * @return a index that match the implementation of Board
+	 */
 	public int getRow() {
 		return row;
 	}
 
+	/**
+	 * Get the column of the move on the board
+	 * @return a index that match the implementation of Board
+	 */
 	public int getCol() {
 		return col;
 	}
@@ -42,14 +52,4 @@ public final class Move {
 		}
 		return false;
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + row;
-		result = prime * result + col;
-		return result;
-	}
-
 }

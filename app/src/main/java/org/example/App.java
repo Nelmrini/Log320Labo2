@@ -9,17 +9,12 @@ public final class App {
 	}
 
 	public static void main(final String[] args) {
-		// test print board
-		// Board board = new Board();
-		// Scanner input = new Scanner(System.in);
-		// System.out.println(board);
-		// while (input.hasNext()) {
-		//     String str = input.nextLine();
-		//     int[] pos = Board.strToInd(str);
-		//
-		//     board.play(new Move(pos[0], pos[1]), Mark.X);
-		//     System.out.println(board);
-		// }
+
+		Board b = new Board();
+		b.play(new Move(0, 0), Mark.X);
+		b.play(new Move(0, 1), Mark.O);
+		b.play(new Move(0, 2), Mark.X);
+		System.out.println(b);
 
 		// test read board from server
 		Link link = Link.getInstance();
@@ -31,27 +26,10 @@ public final class App {
 				default -> "This code is going to isekai itself";
 		});
 
-		// Scanner scanner = new Scanner(System.in);
-		//
-		// while (scanner.hasNext()) {
-		//     var str = scanner.nextLine();
-		//     link.play(Board.strToMov(str));
-		//     System.out.println(link.getBoard());
-		// }
-		//
-		// scanner.close();
-		//
-
-		// Random random = new Random();
 		var ia = new CPUPlayer(link.getPlayer());
 
 		while (true) {
-			// var moves = link.getBoard().getPossibleMoves(
-			// 		link.getLastPlay()
-			// 		);
-			//var m = moves.get(random.nextInt(moves.size()));
 			var m = ia.getNextMoveMinMax(link.getBoard(), link.getLastPlay()).getFirst();
-			System.out.println("Hallo?");
 			link.play(m);
 
 			System.out.println(link.getBoard());

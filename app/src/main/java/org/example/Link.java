@@ -113,14 +113,27 @@ public final class Link {
 		readServer();
 	}
 
+	/**
+	 * Return the current state of the board
+	 * @return a copy of the board
+	 */
 	public Board getBoard() {
 		return new Board(board);
 	}
 
+	/**
+	 * getter
+	 * @return the role the AI is playing
+	 */
 	public Mark getPlayer() {
 		return player;
 	}
 
+	/**
+	 * Get the last play of the opponent
+	 * If we start the game, this will be null
+	 * @return the last move played by the opponent
+	 */
 	public Move getLastPlay() {
 		return lastServerPlay;
 	}
