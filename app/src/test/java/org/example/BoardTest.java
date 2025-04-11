@@ -4,6 +4,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,19 +23,19 @@ public class BoardTest {
 	@Test
 	public void testToString() {
 		String expected = ""
-			+ "|------|------|------|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|------|------|------|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|------|------|------|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|------|------|------|\n";
+			+ "┌──────┬──────┬──────┐\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "├──────┼──────┼──────┤\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "├──────┼──────┼──────┤\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "└──────┴──────┴──────┘\n";
 		assertEquals(expected, new Board().toString());
 
 		var board = new Board();
@@ -42,35 +43,35 @@ public class BoardTest {
 		board.play(new Move(8, 8), Mark.O);
 		board.play(new Move(3, 5), Mark.X);
 		expected = ""
-			+ "|------|------|------|\n"
-			+ "|❌    |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|------|------|------|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|      |❌    |      |\n"
-			+ "|------|------|------|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |    🔵|\n"
-			+ "|------|------|------|\n";
+			+ "┌──────┬──────┬──────┐\n"
+			+ "│❌    │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "├──────┼──────┼──────┤\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│      │❌    │      │\n"
+			+ "├──────┼──────┼──────┤\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │    🔵│\n"
+			+ "└──────┴──────┴──────┘\n";
 		assertEquals(expected, board.toString());
 
 		expected = ""
-			+ "|------|------|------|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|    ❌|    ❌|    ❌|\n"
-			+ "|------|------|------|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |      |\n"
-			+ "|------|------|------|\n"
-			+ "|      |      |🔵🔵🔵|\n"
-			+ "|      |      |      |\n"
-			+ "|      |      |    ❌|\n"
-			+ "|------|------|------|\n";
+			+ "┌──────┬──────┬──────┐\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│    ❌│    ❌│    ❌│\n"
+			+ "├──────┼──────┼──────┤\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │      │\n"
+			+ "├──────┼──────┼──────┤\n"
+			+ "│      │      │🔵🔵🔵│\n"
+			+ "│      │      │      │\n"
+			+ "│      │      │    ❌│\n"
+			+ "└──────┴──────┴──────┘\n";
 		board = new Board();
 		board.play(Board.strToMov("C7"), Mark.X);
 		board.play(Board.strToMov("F7"), Mark.X);
@@ -306,8 +307,134 @@ public class BoardTest {
 
 		var result = b.getPossibleMoves(lastMove);
 
-		assertTrue(result.size() == 0);
+		// This is a tie, we should return Integer.MIN_VALUE
 
+		assertTrue(result.size()       == 0);
+		var won = b.isGameWon(Mark.O);
+		System.out.println(won);
+		assertTrue(won == Integer.MIN_VALUE);
+
+		won = b.isGameWon(Mark.X);
+
+		assertTrue(won == Integer.MIN_VALUE);
+	}
+
+	@Test
+	public void testNoPossibleMove() {
+		// B9
+		// ┌──────┬──────┬──────┐
+		// │  ❌🔵│  ❌🔵│  🔵❌│
+		// │  ❌❌│  🔵❌│  🔵🔵│
+		// │🔵❌🔵│🔵❌🔵│  🔵❌│
+		// ├──────┼──────┼──────┤
+		// │  ❌🔵│❌🔵❌│  ❌❌│
+		// │❌🔵❌│🔵❌🔵│  ❌🔵│
+		// │❌🔵🔵│🔵🔵❌│  ❌❌│
+		// ├──────┼──────┼──────┤
+		// │🔵❌🔵│❌❌❌│  🔵🔵│
+		// │🔵❌❌│❌❌🔵│  🔵🔵│
+		// │❌🔵❌│🔵🔵❌│  🔵❌│
+		// └──────┴──────┴──────┘
+		var b = new Board();
+		var m = Board.strToMov("B9");
+		b.play(Board.strToMov("A1"), Mark.X);
+		b.play(Board.strToMov("B1"), Mark.O);
+		b.play(Board.strToMov("C1"), Mark.X);
+		b.play(Board.strToMov("A2"), Mark.O);
+		b.play(Board.strToMov("B2"), Mark.X);
+		b.play(Board.strToMov("C2"), Mark.X);
+		b.play(Board.strToMov("A3"), Mark.O);
+		b.play(Board.strToMov("B3"), Mark.X);
+		b.play(Board.strToMov("C3"), Mark.O);
+
+		b.play(Board.strToMov("D1"), Mark.O);
+		b.play(Board.strToMov("E1"), Mark.O);
+		b.play(Board.strToMov("F1"), Mark.X);
+		b.play(Board.strToMov("D2"), Mark.X);
+		b.play(Board.strToMov("E2"), Mark.X);
+		b.play(Board.strToMov("F2"), Mark.O);
+		b.play(Board.strToMov("D3"), Mark.X);
+		b.play(Board.strToMov("E3"), Mark.X);
+		b.play(Board.strToMov("F3"), Mark.X);
+
+		// b.play(Board.strToMov("G1"), Mark.);
+		b.play(Board.strToMov("H1"), Mark.O);
+		b.play(Board.strToMov("I1"), Mark.X);
+		// b.play(Board.strToMov("G2"), Mark.);
+		b.play(Board.strToMov("H2"), Mark.O);
+		b.play(Board.strToMov("I2"), Mark.O);
+		// b.play(Board.strToMov("G3"), Mark.);
+		b.play(Board.strToMov("H3"), Mark.O);
+		b.play(Board.strToMov("I3"), Mark.O);
+
+		b.play(Board.strToMov("A4"), Mark.X);
+		b.play(Board.strToMov("B4"), Mark.O);
+		b.play(Board.strToMov("C4"), Mark.O);
+		b.play(Board.strToMov("A5"), Mark.X);
+		b.play(Board.strToMov("B5"), Mark.O);
+		b.play(Board.strToMov("C5"), Mark.X);
+		// b.play(Board.strToMov("A6"), Mark.);
+		b.play(Board.strToMov("B6"), Mark.X);
+		b.play(Board.strToMov("C6"), Mark.O);
+
+		b.play(Board.strToMov("D4"), Mark.O);
+		b.play(Board.strToMov("E4"), Mark.O);
+		b.play(Board.strToMov("F4"), Mark.X);
+		b.play(Board.strToMov("D5"), Mark.O);
+		b.play(Board.strToMov("E5"), Mark.X);
+		b.play(Board.strToMov("F5"), Mark.O);
+		b.play(Board.strToMov("D6"), Mark.X);
+		b.play(Board.strToMov("E6"), Mark.O);
+		b.play(Board.strToMov("F6"), Mark.X);
+
+		// b.play(Board.strToMov("G4"), Mark.);
+		b.play(Board.strToMov("H4"), Mark.X);
+		b.play(Board.strToMov("I4"), Mark.X);
+		// b.play(Board.strToMov("G5"), Mark.);
+		b.play(Board.strToMov("H5"), Mark.X);
+		b.play(Board.strToMov("I5"), Mark.O);
+		// b.play(Board.strToMov("G6"), Mark.);
+		b.play(Board.strToMov("H6"), Mark.X);
+		b.play(Board.strToMov("I6"), Mark.X);
+
+		b.play(Board.strToMov("A7"), Mark.O);
+		b.play(Board.strToMov("B7"), Mark.X);
+		b.play(Board.strToMov("C7"), Mark.O);
+		// b.play(Board.strToMov("A8"), Mark.O);
+		b.play(Board.strToMov("B8"), Mark.X);
+		b.play(Board.strToMov("C8"), Mark.X);
+		// b.play(Board.strToMov("A9"), Mark.);
+		b.play(Board.strToMov("B9"), Mark.X);
+		b.play(Board.strToMov("C9"), Mark.O);
+
+		b.play(Board.strToMov("D7"), Mark.O);
+		b.play(Board.strToMov("E7"), Mark.X);
+		b.play(Board.strToMov("F7"), Mark.O);
+		// b.play(Board.strToMov("D8"), Mark.X);
+		b.play(Board.strToMov("E8"), Mark.O);
+		b.play(Board.strToMov("F8"), Mark.X);
+		// b.play(Board.strToMov("D9"), Mark.);
+		b.play(Board.strToMov("E9"), Mark.X);
+		b.play(Board.strToMov("F9"), Mark.O);
+
+		// b.play(Board.strToMov("G7"), Mark.O);
+		b.play(Board.strToMov("H7"), Mark.O);
+		b.play(Board.strToMov("I7"), Mark.X);
+		// b.play(Board.strToMov("G8"), Mark.X);
+		b.play(Board.strToMov("H8"), Mark.O);
+		b.play(Board.strToMov("I8"), Mark.O);
+		// b.play(Board.strToMov("G9"), Mark.);
+		b.play(Board.strToMov("H9"), Mark.O);
+		b.play(Board.strToMov("I9"), Mark.X);
+		System.out.println(b);
+		System.out.println(b.isGameWon(Mark.O));
+		System.out.println(b.isGameWon(Mark.X));
+		var moves = b.getPossibleMoves(m);
+
+		assertTrue(b.isGameWon(Mark.O) == 0);
+		var expected = new ArrayList<Move>();
+		expected.add(Board.strToMov("A6"));
+		assertEquals(moves, expected);
 	}
 
 	@Test
@@ -325,6 +452,6 @@ public class BoardTest {
 		System.out.println(score);
 
 
-		assertTrue(false);
+		assertTrue(score == 0);
 	}
 }

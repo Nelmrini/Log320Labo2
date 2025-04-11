@@ -21,7 +21,6 @@ import java.util.stream.IntStream;
 public final class Board {
 	/** The internal representation of the tic tact toe board. **/
 	private final Mark[][] board;
-	Mark[][] resultboard;
 
 
 	// Ne pas changer la signature de cette méthode
@@ -41,7 +40,18 @@ public final class Board {
 				this.board[i][j] = previous.board[i][j];
 			}
 		}
+		// because the content didn't change, we don't need to recompute it
+		if (previous.cachedSubbord != null) {
+			this.cachedSubbord = new Mark[3][3];
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+					this.cachedSubbord[i][j] = previous.cachedSubbord[i][j];
+				}
+			}
+		}
+
 	}
+
 
 	// Place la pièce 'mark' sur le plateau, à la
 	// position spécifiée dans Move
@@ -49,16 +59,17 @@ public final class Board {
 	// Ne pas changer la signature de cette méthode
 	public void play(final Move m, final Mark mark) {
 		board[m.getRow()][m.getCol()] = mark;
+		// We only need to recompute the subboard where the mark changed
+		// if (cachedSubbord != null && mark == cachedReference) {
+		// 	cachedSubbord[m.getRow()/3][m.getCol()/3] = subBoardStatus(m, mark);
+		// }
+		cachedSubbord = null;
 	}
 
 	public Board immutablePlay(final Move m, final Mark mark) {
 		var b = new Board(this);
 		b.play(m, mark);
 		return b;
-	}
-
-	public void undo(final Move m) {
-		board[m.getRow()][m.getCol()] = Mark.EMPTY;
 	}
 
 	/**
@@ -100,35 +111,34 @@ public final class Board {
 	 * @param us the player we want to win
 	 * @return Inf if we win, -Inf if we loose or tie. 0 otherwise
 	 */
-	public int isGameWon(final Mark us) {
+	public Integer isGameWon(final Mark us) {
 		int count = 0;
 		int[] tmp1 = new int[] {
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0
 		};
 
 		int[] tmp2 = new int[] {
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0
 		};
+
+		var sub = computeSubBoard(us);
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				switch (subBoardStatus(new Move(j, i), us)) {
+				switch (sub[j][i]) {
 					case X -> {
-						tmp1[j * 3 + i] *= 0;
+						tmp1[j * 3 + i] = 1;
 						count++;
 					}
 					case O -> {
-						tmp2[j * 3 + i] *= 0;
+						tmp2[j * 3 + i] = 1;
 						count++;
 					}
-					default -> {
-						tmp1[j * 3 + i] *= 0;
-						tmp2[j * 3 + i] *= 0;
-					}
+					default -> {}
 				}
 			}
 		}
@@ -150,55 +160,48 @@ public final class Board {
 		if (tmp2[0] + tmp2[4] + tmp2[8] == 3) return (us == Mark.O)?Integer.MAX_VALUE:Integer.MIN_VALUE;
 		if (tmp2[2] + tmp2[4] + tmp2[6] == 3) return (us == Mark.O)?Integer.MAX_VALUE:Integer.MIN_VALUE;
 		// if every subboard is closed and we didn't/loose. This is a tie
-		if (count == 9) return Integer.MIN_VALUE;
+		if (count == 9) return Integer.MAX_VALUE;
 
 		return 0;
 	}
+
+	public int H1(final Mark us, final Move move) {
+		int ours = 0;
+		int theirs = 0;
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (board[i][j] == us) {
+					ours++;
+				} else {
+					theirs++;
+				}
+			}
+		}
+		return ours - theirs;
+	}
+
 
 	// retourne  100 pour une victoire
 	//          -100 pour une défaite
 	//           0   pour un match nul
 	// Ne pas changer la signature de cette méthode
-	private void computeSubBoard(final Mark mark) {
-		resultboard = new Mark[3][3];
+	private Mark[][] cachedSubbord = null;
+	private Mark cachedReference = null;
+	private Mark[][] computeSubBoard(final Mark mark) {
+		if (cachedSubbord != null && cachedReference == mark) return cachedSubbord;
+		var res = new Mark[3][3];
 
-		for(int i = 0; i<3; i++){
-			for(int j = 0; j<3; j++){
-				resultboard[i][j] = Mark.EMPTY;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				res[j][i] = subBoardStatus(new Move(j*3, i*3), mark);
 			}
 		}
-		for(int k = 0; k < 9; k+=3){
-			for(int w = 0; w < 9; w+=3){
-				for (int i = 0; i < 3; i++) {
-					if (board[k+i][w+0] == board[k+i][w+1] && board[k+i][w+1] == board[k+i][w+2] && board[k+i][w+0] != Mark.EMPTY) {
-						//return (board[i][0] == mark) ? 100 : -100;
-						resultboard[k/3][w/3]=board[k+i][w+0];
-					}
-				}
-			
-				for (int j = 0; j < 3; j++) {
-					if (board[k+0][w+j] == board[k+1][w+j] && board[k+1][w+j] == board[k+2][w+j] && board[k+0][w+j] != Mark.EMPTY) {
-						//return (board[0][j] == mark) ? 100 : -100;
-						resultboard[k/3][w/3]=board[k+0][w+j];
-					}
-				}
-			
-				if (board[k+0][w+0] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+2] && board[k+0][w+0] != Mark.EMPTY) {
-					//return (board[0][0] == mark) ? 100 : -100;
-					resultboard[k/3][w/3]=board[k+0][w+0];
-				}
-			
-				if (board[k+0][w+2] == board[k+1][w+1] && board[k+1][w+1] == board[k+2][w+0] && board[k+0][w+2] != Mark.EMPTY) {
-					//return (board[0][2] == mark) ? 100 : -100;
-					resultboard[k/3][w/3]=board[k+0][w+2];
-				}
-			}
-			
-		}
+		cachedSubbord = res;
+		cachedReference = mark;
+		return res;
 	}
 
 	public int evaluateHeuristicCustom(Mark mark, Move move) {
-		this.computeSubBoard(mark);
 		int totalScore = 0;
 		Mark opponent = mark.other();
 		
@@ -209,27 +212,25 @@ public final class Board {
 				int subScore = evaluateSubBoard(this.board, baseRow, baseCol, mark, opponent);
 
 				// reward the corners and the center
-				if (subRow == 0 && subCol == 0) subScore *= 5;
-				if (subRow == 0 && subCol == 2) subScore *= 5;
-				if (subRow == 2 && subCol == 0) subScore *= 5;
-				if (subRow == 2 && subCol == 2) subScore *= 5;
-				if (subRow == 1 && subCol == 1) subScore *= 10;
+				// if (subRow == 0 && subCol == 0) subScore *= 5;
+				// if (subRow == 0 && subCol == 2) subScore *= 5;
+				// if (subRow == 2 && subCol == 0) subScore *= 5;
+				// if (subRow == 2 && subCol == 2) subScore *= 5;
+				// if (subRow == 1 && subCol == 1) subScore *= 5;
 
 				totalScore += subScore;
 			}
 		}
 	
 		totalScore += evaluateGlobalBoard(mark, opponent, move);
-		
+
 		return totalScore;
 	}
 	
 	private int evaluateSubBoard(Mark[][] board, int baseRow, int baseCol, Mark mark, Mark opponent) {
 		int score = 0;
-	
 		for (int i = 0; i < 3; i++) {
 			int rowCountMark = 0, rowCountOpp = 0, rowCountEmpty = 0;
-			int colCountMark = 0, colCountOpp = 0, colCountEmpty = 0;
 			for (int j = 0; j < 3; j++) {
 				if (board[baseRow + i][baseCol + j] == mark) {
 					rowCountMark++;
@@ -238,7 +239,12 @@ public final class Board {
 				} else {
 					rowCountEmpty++;
 				}
-				// Column
+			}
+			score += evaluateLine(rowCountMark, rowCountOpp, rowCountEmpty);
+			
+			// Column
+			int colCountMark = 0, colCountOpp = 0, colCountEmpty = 0;
+			for (int j = 0; j < 3; j++) {
 				if (board[baseRow + j][baseCol + i] == mark) {
 					colCountMark++;
 				} else if (board[baseRow + j][baseCol + i] == opponent) {
@@ -247,8 +253,7 @@ public final class Board {
 					colCountEmpty++;
 				}
 			}
-			score += evaluateLine(rowCountMark, rowCountOpp, rowCountEmpty);
-			score += evaluateLine(colCountMark, colCountOpp, colCountEmpty);
+
 		}
 	
 		// Evaluate diagonals
@@ -275,40 +280,101 @@ public final class Board {
 		score += evaluateLine(diag1Mark, diag1Opp, diag1Empty);
 		score += evaluateLine(diag2Mark, diag2Opp, diag2Empty);
 		
+		// Center
+		if (board[baseRow + 1][baseCol + 1] == opponent)
+			score -= 20;
+
+ 		// Corners
+		if (board[baseRow][baseCol] == opponent)
+			score -= 10;
+		if (board[baseRow][baseCol + 2] == opponent)
+			score -= 10;
+		if (board[baseRow + 2][baseCol] == opponent)
+			score -= 10;
+		if (board[baseRow + 2][baseCol + 2] == opponent)
+			score -= 10;
+		
 		return score;
 	}
 	
 
-	private int evaluateLine(int countMark, int countOpp, int countEmpty) {
+	private int evaluateLine(int ours, int theirs, int empty) {
 		// Be extremly agressive with subboard control.
-		if (countMark == 3) return  100000;
-		if (countOpp == 3)  return -100000;
+		if (ours == 3) return  5000;
+		if (theirs == 3)  return -10000;
 
 		// We want to reward partial control
-		if (countMark == 2 && countEmpty == 1) return 500;
-		if (countOpp  == 2 && countEmpty == 1) return -500;
+		if (ours == 2 && empty == 1) return 500;
+		if (theirs  == 2 && empty == 1) return -500;
 
 		return 0;
 	}
 	
 
 	private int evaluateGlobalBoard(Mark mark, Mark opponent, Move move) {
-		
+		var res = computeSubBoard(mark);
 		int score = 0;
+		// we evualuate the full board like if it was a small board
+
+		for (int i = 0; i < 3; i++) {
+			var ours = 0;
+			var theirs = 0;
+			var empty = 0;
+			// lines
+			for (int j = 0; j < 3; j++) {
+				var r = res[i][j];
+				if (r == mark) ours++;
+				if (r == opponent) theirs++;
+				if (r == Mark.EMPTY) empty++;
+				score += 20 * evaluateLine(ours, theirs, empty);
+			}
+			// columns
+			for (int j = 0; j < 3; j++) {
+				var r = res[j][i];
+				if (r == mark) ours++;
+				if (r == opponent) theirs++;
+				if (r == Mark.EMPTY) empty++;
+				score += Math.min(score,
+						20 * evaluateLine(ours, theirs, empty));
+			}
+		}
 		
+		// diagonal
+		var ours = 0;
+		var theirs = 0;
+		var empty = 0;
+		for (int i = 0; i < 3; i++) {
+			var r = res[i][i];
+			if (r == mark) ours++;
+			if (r == opponent) theirs++;
+			if (r == Mark.EMPTY) empty++;
+		}
+		score += Math.min(score, 20 * evaluateLine(ours, theirs, empty));
+		// anti-diagonal
+		ours = 0;
+		theirs = 0;
+		empty = 0;
+		for (int i = 0; i < 3; i++) {
+			var r = res[2-i][i];
+			if (r == mark) ours++;
+			if (r == opponent) theirs++;
+			if (r == Mark.EMPTY) empty++;
+		}
+		score += Math.min(score, 20 * evaluateLine(ours, theirs, empty));
+
 		// we want to control the corners, and the center
-		if (resultboard[0][0] == mark) score += 500;
-		if (resultboard[0][2] == mark) score += 500;
-		if (resultboard[2][0] == mark) score += 500;
-		if (resultboard[2][2] == mark) score += 500;
-		if (resultboard[1][1] == mark) score += 100;
+		// if (res[0][0] == mark) score += 500;
+		// if (res[0][2] == mark) score += 500;
+		// if (res[2][0] == mark) score += 500;
+		// if (res[2][2] == mark) score += 500;
+		// if (res[1][1] == mark) score += 100;
 
 
-		if (resultboard[0][0] == opponent) score -= 500;
-		if (resultboard[0][2] == opponent) score -= 500;
-		if (resultboard[2][0] == opponent) score -= 500;
-		if (resultboard[2][2] == opponent) score -= 500;
-		if (resultboard[1][1] == opponent) score -= 100;
+		if (res[0][0] == opponent) score -= 500;
+		if (res[0][2] == opponent) score -= 500;
+		if (res[2][0] == opponent) score -= 500;
+		if (res[2][2] == opponent) score -= 500;
+		if (res[1][1] == opponent) score -= 100;
 
 		return score;
 	}
@@ -390,32 +456,29 @@ public final class Board {
 
 		int count = 0;
 		int[] tmp1 = new int[] {
-			1, 1, 1,
-				1, 1, 1,
-				1, 1, 1
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0
 		};
 
 		int[] tmp2 = new int[] {
-			1, 1, 1,
-				1, 1, 1,
-				1, 1, 1
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0
 		};
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				switch (board[3 * row + i][3 * col + j]) {
 					case X -> {
-						tmp1[j * 3 + i] *= 0;
+						tmp1[j * 3 + i] = 1;
 						count++;
 					}
 					case O -> {
-						tmp2[j * 3 + i] *= 0;
+						tmp2[j * 3 + i] = 1;
 						count++;
 					}
-					default -> {
-						tmp1[j * 3 + i] *= 0;
-						tmp2[j * 3 + i] *= 0;
-					}
+					default -> {}
 				}
 			}
 		}
@@ -453,33 +516,32 @@ public final class Board {
 		int col = move.getCol() / 3;
 		int count = 0;
 
+		// This is O wins
 		int[] tmp1 = new int[] {
-			1, 1, 1,
-				1, 1, 1,
-				1, 1, 1
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0
 		};
 
+		// This is X wins
 		int[] tmp2 = new int[] {
-			1, 1, 1,
-				1, 1, 1,
-				1, 1, 1
+			0, 0, 0,
+			0, 0, 0,
+			0, 0, 0
 		};
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				switch (board[3 * row + i][3 * col + j]) {
 					case X -> {
-						tmp1[j * 3 + i] *= 0;
+						tmp1[j * 3 + i] = 1;
 						count++;
 					}
 					case O -> {
-						tmp2[j * 3 + i] *= 0;
+						tmp2[j * 3 + i] = 1;
 						count++;
 					}
-					default -> {
-						tmp1[j * 3 + i] *= 0;
-						tmp2[j * 3 + i] *= 0;
-					}
+					default -> {}
 				}
 			}
 		}
@@ -503,8 +565,7 @@ public final class Board {
 		if (tmp2[0] + tmp2[4] + tmp2[8] == 3) return Mark.O;
 		if (tmp2[2] + tmp2[4] + tmp2[6] == 3) return Mark.O;
 
-		if (count == 9) return us.other();
-
+		if (count == 9) return us;
 		return Mark.EMPTY;
 	}
 
@@ -539,6 +600,34 @@ public final class Board {
 		return 0;
 	}
 
+	// Random evaluator
+	public int randomHeuristic(final Mark us, final Move move, ForkJoinPool pool) {
+		return pool.submit(
+				() ->
+				IntStream.range(0, 20)
+				.parallel()
+				.map(ign -> {
+					var moves = this.getPossibleMoves(move);
+					var n = 0;
+					Move m;
+					var b = new Board(this);
+					var t = us;
+					while (moves.size() != 0 && n < 3) {
+						n++;
+						m = moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
+						b.play(m, t);
+						moves = b.getPossibleMoves(m);
+						t = t.other();
+					}
+					if (b.isGameWon(us) < 0) {
+						return -1000;
+					} else {
+						return 0;
+					}
+				})
+				.reduce(0, Integer::sum)
+		).join() / 20;
+	}
 
 	/**
 	 * helper to convert a string like A 5 to a position on the board.

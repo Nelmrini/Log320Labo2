@@ -26,7 +26,7 @@ public final class CPUPlayer {
 	private int numExploredNodes;
 	/** Who's is the AI on the board. **/
 	private Mark mySide;
-	private final long MAX_TIME_MILLI = 3000 - 100;
+	private final long MAX_TIME_MILLI = 3000;
 	private Instant IA_STARTED;
 
 	/**
@@ -56,36 +56,43 @@ public final class CPUPlayer {
 			final Move lastMove) {
 
 		IA_STARTED = Instant.now();
+		cuffoff = 0;
 
 		var possiblesModes = board.getPossibleMoves(lastMove);
-
-		var sortedMoves = ForkJoinPool.commonPool().submit(() ->
+		var moves = ForkJoinPool.commonPool().submit(() ->
 			possiblesModes
 				.stream()
 				.parallel()
 				.map(move -> {
 					// this b is a new Board, no race condition should occur
+					var pool = new ForkJoinPool();
 					var b = board.immutablePlay(move, mySide);
 					var score = minMaxMulti(
 							b,
 							1,
 							mySide.other(),
-							move
+							move,
+							pool
 							);
-					System.out.println("max Profondeur " + score.second());
+					System.out.println("current depth " + score.second());
+					pool.shutdown();
 					return new Tuple<>(move, score.first());
 				})
+				.parallel()
 				.sorted(Comparator.comparingInt(Tuple::second))
 				.toList()
 		).join();
 
-		for (var move : sortedMoves) {
+		System.out.println("CUTOFF: " + cuffoff);
+		var sorted = moves;
+
+		for (var move : sorted) {
 			System.out.println(move.first() + " " + move.second());
 		}
 
 		Integer highscore = null;
 		List<Move> bestMoves = new ArrayList<Move>();
-		for (var t : sortedMoves.reversed()) {
+		for (var t : sorted.reversed()) {
 			if (highscore == null) {
 				highscore = t.second();
 			}
@@ -93,43 +100,48 @@ public final class CPUPlayer {
 				bestMoves.add(t.first());
 			}
 		}
-		// At this point bestMoves contains the best moves According to MinMax
-
-		// Now we sort the moves according to evaluator function
-		bestMoves = bestMoves.stream()
-			.sorted(Comparator.comparingInt(m -> board.evaluateHeuristicCustom(mySide, m)))
-			.toList();
-		
-
-		// And we select the best one
-
+		System.out.println("HIGHSCORE " + highscore);
 		System.out.printf("We had %d ms left\n", 3000 - (Duration.between(IA_STARTED, Instant.now()).toMillis()));
 
-		return List.of(bestMoves.getLast());
+		var m = bestMoves
+			.stream()
+			.map(n -> new Tuple<>(n,
+						board.evaluateHeuristicCustom(mySide, n) +
+						board.moveHeurisitic(mySide, n)
+						))
+			.max(Comparator.comparingInt(Tuple::second))
+			.map(Tuple::first)
+			.orElse(bestMoves.get(0));
+
+
+		return List.of(m);
 	}
 
+	private int cuffoff = 0;
+
 	public Tuple<Integer, Integer> minMaxMulti(final Board board, final int profondeur,
-			final Mark turn, final Move lastMove) {
-
-		// time cutoff
-		// This replace the depth cutoff as we go as depth as possible
-		if (Duration.between(IA_STARTED, Instant.now()).toMillis() > MAX_TIME_MILLI) {
-			var score = board.isGameWon(mySide);
-			if (score != 0) return new Tuple<>(score, profondeur);
-			var h1 = board.evaluateHeuristicCustom(mySide, lastMove);
-			// var h2 = board.moveHeurisitic(mySide, lastMove);
-			// var d  = profondeur+1; d *= d;
-			return new Tuple<>(h1, profondeur);
-		}
-
-		var score = board.isGameWon(mySide);
+			final Mark turn, final Move lastMove, ForkJoinPool pool) {
+		Integer score = board.isGameWon(mySide);
 		if (score != 0) {
+			// score = (int)(score / Math.pow(profondeur, 2));
 			return new Tuple<>(score, profondeur);
 		}
 
+
+		var now = Instant.now();
+		var dur = Duration.between(IA_STARTED, now);
+		// We squeze as much depth as possible depending how many possition
+		// we have to explore
+		// we dynamically ajust the max depth
+		if (dur.toMillis() >= MAX_TIME_MILLI || profondeur > 7) {
+			var h1 = board.evaluateHeuristicCustom(mySide, lastMove);
+			// h1 += board.randomHeuristic(mySide, lastMove, pool);
+			return new Tuple<>(h1, profondeur);
+		}
+		
 		var possibleMoves = board.getPossibleMoves(lastMove);
-		var sortedScores = ForkJoinPool.commonPool().submit(() ->
-			possibleMoves
+		var ans = pool.submit(
+				() -> possibleMoves
 				.stream()
 				.parallel()
 				.map(move -> {
@@ -139,17 +151,20 @@ public final class CPUPlayer {
 							b,
 							profondeur + 1,
 							turn.other(),
-							move
+							move,
+							pool
 							);
 				})
+				.parallel()
 				.sorted(Comparator.comparingInt(Tuple::first))
 				.toList()
 		).join();
-
-		if (turn != mySide) {
-			return sortedScores.getFirst();
+		if (turn == mySide) {
+			// return ans.getFirst();
+			return ans.getLast();
 		} else {
-			return sortedScores.getLast();
+			return ans.getFirst();
+			// return ans.getLast();
 		}
 	}
 }
