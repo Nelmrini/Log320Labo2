@@ -355,9 +355,9 @@ public final class Board {
 			if (done) {
 				for (int i = 0; i < 9; i++) {
 					for (int j = 0; j < 9; j++) {
-						var cond = i / 3 != vsMove.getRow() % 3
-							|| j / 3 != vsMove.getCol() % 3;
-						cond &= !isSubBoardDone(new Move(j, i));
+						// var cond = i / 3 != vsMove.getRow() % 3
+						// 	    || j / 3 != vsMove.getCol() % 3;
+						var cond = !isSubBoardDone(new Move(j, i));
 						if (cond && board[j][i] == Mark.EMPTY) {
 							res.add(new Move(j, i));
 						}
