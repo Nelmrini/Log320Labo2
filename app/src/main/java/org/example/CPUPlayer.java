@@ -29,7 +29,7 @@ public final class CPUPlayer {
 	/** Who's is the AI on the board. **/
 	private final Mark mySide;
 	/** How much time the AI has to play **/
-	private final long MAX_TIME_MILLI = 3000 - 15;
+	private final long MAX_TIME_MILLI = 3000 - 250;
 	/** When did the AI start to play **/
 	private Instant IA_STARTED;
 
@@ -69,7 +69,7 @@ public final class CPUPlayer {
 				.map(move -> {
 					// this b is a new Board, no race condition should occur
 					final var b = board.immutablePlay(move, mySide);
-					final var score = minMaxMulti( b, mySide.other(), move);
+					final var score = minMaxMulti( b, mySide.other(), move, 0);
 					return new Tuple<>(move, score);
 				})
 				.sorted(Comparator.comparingInt(Tuple::second))
@@ -110,9 +110,11 @@ public final class CPUPlayer {
 	 * @param turn The side to play
 	 * @param lastMove The last move played by the opponent.
 	 */
-	public Integer minMaxMulti(final Board board, final Mark turn, final Move lastMove) {
+	public Integer minMaxMulti(final Board board, final Mark turn, final Move lastMove,
+			int depth) {
 		// time cutoff
-		if (Duration.between(IA_STARTED, Instant.now()).toMillis() > MAX_TIME_MILLI) {
+		var dur = Duration.between(IA_STARTED, Instant.now()).toMillis();
+		if (depth >= 5 || dur >= MAX_TIME_MILLI) {
 			return board.evaluateHeuristicCustom(mySide, lastMove);
 		}
 		
@@ -121,11 +123,6 @@ public final class CPUPlayer {
 		if (Math.abs(score) == 100) return score*100;
 
 		final var possibleMoves = board.getPossibleMoves(lastMove);
-
-		// this shouldn't happen but here we are
-		if (possibleMoves.isEmpty()) {
-			return board.evaluateHeuristicCustom(mySide, lastMove);
-		}
 
 		// Recursive multithreading
 		final var sortedScores = ForkJoinPool.commonPool().submit(() ->
@@ -138,7 +135,8 @@ public final class CPUPlayer {
 					return minMaxMulti(
 							b,
 							turn.other(),
-							move
+							move,
+							depth + 1
 							);
 				})
 				.sorted()
